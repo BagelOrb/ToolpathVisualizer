@@ -155,9 +155,11 @@ void Statistics::generateAllSegments(std::vector<std::list<ExtrusionLine>>& poly
     }
 }
 
-void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool output_widths, bool include_legend, bool visualize_accuracy, bool exaggerate_widths, bool rounded_visualization)
+void Statistics::visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, bool output_toolpaths, bool output_widths, bool include_legend, bool visualize_accuracy, bool exaggerate_widths, bool rounded_visualization)
 {
     AABB aabb(input);
+	
+	float rounded_viz_growth_factor = 1.4;
 
     if (output_toolpaths)
     {
@@ -185,7 +187,7 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
 //         Polygons connecteds = PolygonUtils::connect(area_covered);
 //         for (PolygonRef connected : connecteds)
 //             svg.writeAreas(connected, SVG::Color::BLACK, SVG::Color::NONE);
-        for (float w = .9; w > .25; w = 1.0 - (1.0 - w) * 1.2)
+        for (float w = .9; w > .25; w = 1.0 - (1.0 - w) * rounded_viz_growth_factor)
         {
             Polygons polys;
             for (coord_t segment_idx = 0; segment_idx < all_segments.size(); segment_idx++)
@@ -220,7 +222,8 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
         SVG svg(ss.str(), aabb);
 //         svg.writeAreas(input, SVG::Color::GRAY, SVG::Color::NONE, 2);
 
-        coord_t max_dev = nozzle_size / 2;
+		coord_t avg_nozzle_size = (min_nozzle_size + max_nozzle_size) / 2;
+        coord_t max_dev = avg_nozzle_size - min_nozzle_size;
         coord_t min_w = 30;
 
         // add legend
@@ -234,15 +237,15 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
                 return ss.str();
             };
             AABB aabb(input);
-            ExtrusionJunction legend_btm(Point(aabb.max.X + nozzle_size + max_dev, aabb.max.Y), nozzle_size - max_dev, 0);
-            ExtrusionJunction legend_top(Point(aabb.max.X + nozzle_size + max_dev, aabb.min.Y), nozzle_size + max_dev, 0);
+            ExtrusionJunction legend_btm(Point(aabb.max.X + avg_nozzle_size + max_dev, aabb.max.Y), avg_nozzle_size - max_dev, 0);
+            ExtrusionJunction legend_top(Point(aabb.max.X + avg_nozzle_size + max_dev, aabb.min.Y), avg_nozzle_size + max_dev, 0);
             ExtrusionJunction legend_mid((legend_top.p + legend_btm.p) / 2, (legend_top.w + legend_btm.w) / 2, 0);
             legend_btm.p += (legend_mid.p - legend_btm.p) / 4;
             legend_top.p += (legend_mid.p - legend_top.p) / 4;
             ExtrusionSegment legend_segment(legend_btm, legend_top, true);
             svg.writeAreas(legend_segment.toPolygons(false), SVG::ColorObject(200,200,200), SVG::Color::NONE); // real outline
             all_segments_plus.emplace_back(legend_segment, true); // colored
-            Point legend_text_offset(nozzle_size, 0);
+            Point legend_text_offset(avg_nozzle_size, 0);
             svg.writeText(legend_top.p + legend_text_offset, to_string(INT2MM(legend_top.w)));
             svg.writeText(legend_btm.p + legend_text_offset, to_string(INT2MM(legend_btm.w)));
             svg.writeText(legend_mid.p + legend_text_offset, to_string(INT2MM(legend_mid.w)));
@@ -261,7 +264,7 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
 //         for (PolygonRef connected : connecteds)
 //             svg.writeAreas(connected, SVG::Color::BLACK, SVG::Color::NONE);
         
-        for (float w = .9; w > .25; w = 1.0 - (1.0 - w) * 1.2)
+        for (float w = .9; w > .25; w = 1.0 - (1.0 - w) * rounded_viz_growth_factor)
         {
             int brightness = rounded_visualization? 255 - 200 * (w - .25) : 192;
             for (coord_t segment_idx = 0; segment_idx < all_segments_plus.size(); segment_idx++)
@@ -273,9 +276,9 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
                 {
                     coord_t avg_w = (s.s.from.w + s.s.to.w) / 2;
                     Point3 clr;
-                    float color_ratio = std::min(1.0, double(std::abs(avg_w - nozzle_size)) / max_dev);
+                    float color_ratio = std::min(1.0, double(std::abs(avg_w - avg_nozzle_size)) / max_dev);
                     color_ratio = color_ratio * .5 + .5 * sqrt(color_ratio);
-                    if (avg_w > nozzle_size)
+                    if (avg_w > avg_nozzle_size)
                     {
                         clr = wide * color_ratio + middle * (1.0 - color_ratio );
                     }
@@ -291,8 +294,8 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
     //                 clr.y = clr.y * (255 - 92 * clr.dot(green) / green.vSize() / 255) / 255;
                     if (exaggerate_widths)
                     {
-                        s.s.from.w = std::max(min_w, min_w + (s.s.from.w - (nozzle_size - max_dev)) * 5 / 4);
-                        s.s.to.w = std::max(min_w, min_w + (s.s.to.w - (nozzle_size - max_dev)) * 5 / 4);
+                        s.s.from.w = std::max(min_w, min_w + (s.s.from.w - (avg_nozzle_size - max_dev)) * 5 / 4);
+                        s.s.to.w = std::max(min_w, min_w + (s.s.to.w - (avg_nozzle_size - max_dev)) * 5 / 4);
                     }
 //                     else
 //                     {

@@ -647,7 +647,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 
 	Statistics stats("external", output_prefix, polys, -1.0);
 	stats.analyse(result_polygons_per_index, result_polylines_per_index);
-	stats.visualize(MM2INT(0.4));
+	stats.visualize(MM2INT(0.3), MM2INT(1.0));
 	stats.saveResultsCSV();
 }
 
