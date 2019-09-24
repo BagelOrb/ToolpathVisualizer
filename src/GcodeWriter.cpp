@@ -5,46 +5,52 @@
 #include "pathOrderOptimizer.h"
 #include "OrderOptimizer.h"
 #include "utils/logoutput.h"
+#include "utils/ExtrusionSegment.h"
 
 namespace visualizer
 {
-GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness, float print_speed, float travel_speed, float extrusion_multiplier)
+GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness, float print_speed, float travel_speed, float extrusion_multiplier, bool equalize_flow)
 : file(filename.c_str())
 , type(type)
 , layer_thickness(layer_thickness)
 , print_speed(print_speed)
 , travel_speed(travel_speed)
 , extrusion_multiplier(extrusion_multiplier)
+, equalize_flow(equalize_flow)
+, flow(print_speed * INT2MM(layer_thickness) * 0.4)
 {
     assert(file.good());
 
     file << ";START_OF_HEADER\n";
     file << ";HEADER_VERSION:0.1\n";
     file << ";FLAVOR:Griffin\n";
-    file << ";GENERATOR.NAME:libVisualizer\n";
-    file << ";GENERATOR.VERSION:3.1.0\n";
-    file << ";GENERATOR.BUILD_DATE:2017-12-05\n";
+    file << ";GENERATOR.NAME:Cura_SteamEngine\n";
+    file << ";GENERATOR.VERSION:4.2.1\n";
+    file << ";GENERATOR.BUILD_DATE:2019-08-01\n";
     file << ";TARGET_MACHINE.NAME:Ultimaker 3\n";
-    file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:215\n";
-    file << ";EXTRUDER_TRAIN.0.MATERIAL.VOLUME_USED:9172\n";
+    file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:210\n";
+    file << ";EXTRUDER_TRAIN.0.MATERIAL.VOLUME_USED:109\n";
     file << ";EXTRUDER_TRAIN.0.MATERIAL.GUID:506c9f0d-e3aa-4bd4-b2d2-23e2425b1aa9\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.DIAMETER:0.4\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.NAME:AA 0.4\n";
-    file << ";BUILD_PLATE.INITIAL_TEMPERATURE:20\n";
-    file << ";PRINT.TIME:5201\n";
+    file << ";BUILD_PLATE.TYPE:glass\n";
+    file << ";BUILD_PLATE.INITIAL_TEMPERATURE:60\n";
+    file << ";BUILD_VOLUME.TEMPERATURE:28\n";
+    file << ";PRINT.TIME:57\n";
+    file << ";PRINT.GROUPS:1\n";
     file << ";PRINT.SIZE.MIN.X:9\n";
     file << ";PRINT.SIZE.MIN.Y:6\n";
     file << ";PRINT.SIZE.MIN.Z:0.27\n";
-    file << ";PRINT.SIZE.MAX.X:173.325\n";
-    file << ";PRINT.SIZE.MAX.Y:164.325\n";
-    file << ";PRINT.SIZE.MAX.Z:60.03\n";
+    file << ";PRINT.SIZE.MAX.X:126.29\n";
+    file << ";PRINT.SIZE.MAX.Y:117.29\n";
+    file << ";PRINT.SIZE.MAX.Z:2\n";
     file << ";END_OF_HEADER\n";
     file << ";Generated with libVisualizer\n";
-    file << "\n";
     file << "T0\n";
-    file << "M82 ; absolute extrusion mode\n";
+    file << "M82 ;absolute extrusion mode\n";
+    file << "\n";
     file << "G92 E0\n";
-    file << "M109 S215\n";
+    file << "M109 S210\n";
     file << "G0 F15000 X9 Y6 Z2\n";
     file << "G280\n";
     file << "G1 F1500 E-6.5\n";
@@ -53,7 +59,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
     file << "M107\n";
     file << "M204 S625; set acceleration\n";
     file << "M205 X6 Y6; set jerk\n";
-    file << "G0 F" << travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << (INT2MM(layer_thickness) + 0.27) << " ; start location\n";
+    file << "G0 F" << travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << INT2MM(layer_thickness) << " ; start location\n";
     is_unretracted = true;
     file << "\n";
 //     file << "M214 K1.0 ; linear advance\n";
@@ -398,19 +404,20 @@ void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
 
 void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to)
 {
+    coord_t w = (from.w + to.w) / 2;
     double print_speed = this->print_speed;
-    if ((from.w + to.w) / 2 > nozzle_size * 3)
-    {
-        double factor = double((from.w + to.w) / 2 - nozzle_size * 2) / nozzle_size;
-        print_speed /= factor;
-    }
+	if (equalize_flow)
+	{
+		print_speed = flow / INT2MM(layer_thickness) / INT2MM(w);
+	}
+// 	float der = INT2MM(to.w - from.w) / vSizeMM(to.p - from.p) / 0.4;
+// 	print_speed -= der * 10;
     switch(type)
     {
         case type_UM3:
         default:
-            coord_t w = (from.w + to.w) / 2;
-            float speed = print_speed * nozzle_size / w;
-            last_E += getExtrusionFilamentMmPerMmMove(w) * vSize(to.p - from.p);
+            last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
+//             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
             file << "G1 F" << print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y)
                 << " E" << last_E << "\n";
             break;
@@ -429,13 +436,19 @@ void GcodeWriter::extrude(float amount)
     }
 }
 
-float GcodeWriter::getExtrusionFilamentMmPerMmMove(coord_t width)
+float GcodeWriter::getExtrusionFilamentMmPerMmMove(coord_t width) const
+{
+    float volume_per_mm_move = INT2MM(width) * INT2MM(layer_thickness);
+    // v / m / (v / f) = f / m
+    return volume_per_mm_move * getExtrusionFilamentMmPerCubicMm();
+}
+
+
+float GcodeWriter::getExtrusionFilamentMmPerCubicMm() const
 {
     float filament_radius = 0.5 * filament_diameter;
     float volume_per_mm_filament = M_PI * filament_radius * filament_radius;
-    float volume_per_mm_move = INT2MM(width) * INT2MM(layer_thickness);
-    // v / m / (v / f) = f / m
-    return volume_per_mm_move / volume_per_mm_filament * extrusion_multiplier;
+	return 1.0 / volume_per_mm_filament * extrusion_multiplier;
 }
 
 } // namespace visualizer

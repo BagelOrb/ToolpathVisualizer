@@ -6,7 +6,7 @@
 namespace visualizer
 {
     
-Polygons ExtrusionSegment::toPolygons(bool reduced)
+Polygons ExtrusionSegment::toPolygons(bool reduced) const
 {
     Polygons ret;
     Point vec = to.p - from.p;
@@ -85,6 +85,11 @@ Polygons ExtrusionSegment::toPolygons(bool reduced)
     }
 
     return ret;
+}
+
+double ExtrusionSegment::getArea(bool reduced) const
+{
+	return toPolygons(reduced).area(); // TODO: compute directly to save time
 }
 
 }//namespace cura

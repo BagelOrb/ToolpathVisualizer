@@ -538,6 +538,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 
 	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
     Polygons polys = is_svg? SVGloader::load(input_outline_filename) : TXTloader::load(input_outline_filename);
+	AABB aabb(polys);
     
 
     PointMatrix mirror = PointMatrix::scale(1);
@@ -643,6 +644,21 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 	{
 		std::cerr << "Error reading " << input_segment_file << "!\n";
 		std::exit(-1);
+	}
+
+    std::ostringstream ss;
+    ss << "visualization/" << output_prefix << ".gcode";
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3);
+	float gamma = 0.0;
+	for ( int x = -2; x <= 2; x++ )
+	for ( int y = -2; y <= 2; y++ )
+	{
+	    std::vector<std::list<ExtrusionLine>> translated_polygons = result_polygons_per_index;
+		for (auto & polys : translated_polygons) for (auto & poly : polys) for (auto & p : poly.junctions) p.p += Point(x, y) * MM2INT(25);
+		
+		gcode.printOrdered(translated_polygons, result_polylines_per_index, aabb, false);
+		
+		gamma += 0.01;
 	}
 
 	Statistics stats("external", output_prefix, polys, -1.0);

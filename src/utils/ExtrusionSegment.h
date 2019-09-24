@@ -36,7 +36,9 @@ public:
     /*!
      * \param reduced Whether to remove the circle from the to-location because it will be included in the next extrusion move
      */
-    Polygons toPolygons(bool reduced);
+    Polygons toPolygons(bool reduced) const;
+
+    double getArea(bool reduced) const;
 };
 
 
