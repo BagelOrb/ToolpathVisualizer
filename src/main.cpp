@@ -607,11 +607,11 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 
 #ifdef DEBUG
     {
-        SVG svg("output/outline_viz.svg", AABB(polys));
+        SVG svg("visualization/outline_viz.svg", AABB(polys));
         svg.writeAreas(polys, SVG::Color::NONE, SVG::Color::BLACK);
     }
     {
-        SVG svg("output/outline.svg", AABB(polys), INT2MM(1));
+        SVG svg("visualization/outline.svg", AABB(polys), INT2MM(1));
         svg.writeAreas(polys, SVG::Color::NONE, SVG::Color::BLACK);
     }
 #endif
@@ -619,7 +619,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
     if (false && output_prefix.compare("TEST") != 0)
     {
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_results.csv";
+        ss << "visualization/" << output_prefix << "_results.csv";
         std::ifstream file(ss.str().c_str());
         if (file.good())
         {

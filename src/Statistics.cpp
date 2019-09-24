@@ -93,7 +93,7 @@ void Statistics::saveResultsCSV()
     if ( ! all_segments.empty())
     {
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_" << test_type << "_segments.csv";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_segments.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
         csv << "from_x,from_y,from_width,to_x,to_y,to_width,filename_base,output_prefix,inset_index\n";
         for (const Segment& segment : all_segments)
@@ -113,7 +113,7 @@ void Statistics::saveResultsCSV()
             for (const Point& p : poly)
                 vert_count++;
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_" << test_type << "_results.csv";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
         csv << "processing_time,overfill_area,double_overfill_area,total_underfill_area,total_target_area,total_target_area_length,vert_count,test_type,output_prefix\n";
         csv << processing_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << ","
@@ -162,7 +162,7 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
     if (output_toolpaths)
     {
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_" << test_type << "_toolpaths.svg";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_toolpaths.svg";
         SVG svg(ss.str(), aabb);
         svg.writeAreas(input, SVG::Color::GRAY, SVG::Color::NONE, 2);
         svg.nextLayer();
@@ -178,7 +178,7 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
     if (visualize_accuracy)
     {
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_" << test_type << "_accuracy.svg";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_accuracy.svg";
         SVG svg(ss.str(), aabb);
 //         svg.writeAreas(input, SVG::Color::NONE, SVG::Color::BLACK, 3);
 //         svg.nextLayer();
@@ -216,7 +216,7 @@ void Statistics::visualize(coord_t nozzle_size, bool output_toolpaths, bool outp
     if (output_widths)
     {
         std::ostringstream ss;
-        ss << "output/" << output_prefix << "_" << test_type << "_widths.svg";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_widths.svg";
         SVG svg(ss.str(), aabb);
 //         svg.writeAreas(input, SVG::Color::GRAY, SVG::Color::NONE, 2);
 
