@@ -14,7 +14,7 @@ int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per
     std::string line;
 	
 	int size, inset_nr;
-	double x, y, w, dx, dy;
+	double x, y, r, dx, dy;
 	
 	ExtrusionLine * last_polyline = nullptr;
 	
@@ -29,10 +29,10 @@ int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per
 			result_polygons_per_index[inset_nr].emplace_back(inset_nr);
 			last_polyline = & result_polygons_per_index[inset_nr].back();
         }
-        else if (std::sscanf(line.c_str(), "%lf %lf %lf %lf %lf", &x, &y, &w, &dx, &dy) >= 2)
+        else if (std::sscanf(line.c_str(), "%lf %lf %lf %lf %lf", &x, &y, &r, &dx, &dy) >= 2)
 		{
 			assert(last_polyline);
-			last_polyline->junctions.emplace_back(Point(MM2INT(x), MM2INT(y)), MM2INT(w), last_polyline->inset_idx);
+			last_polyline->junctions.emplace_back(Point(MM2INT(x), MM2INT(y)), MM2INT(2.0 * r), last_polyline->inset_idx);
 		}
     }
     return 0;
