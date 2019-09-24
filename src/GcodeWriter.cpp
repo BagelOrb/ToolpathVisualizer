@@ -18,6 +18,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
 , extrusion_multiplier(extrusion_multiplier)
 , equalize_flow(equalize_flow)
 , flow(print_speed * INT2MM(layer_thickness) * 0.4)
+, gamma(0.0)
 {
     assert(file.good());
 
@@ -75,6 +76,11 @@ GcodeWriter::~GcodeWriter()
 //     file << "M214 K0.0\n";
     file << "M107\n";
     file.close();
+}
+
+void GcodeWriter::setGamma(float gamma)
+{
+	this->gamma = gamma;
 }
 
 void GcodeWriter::printBrim(AABB aabb, coord_t count, coord_t w, coord_t dist)
@@ -409,6 +415,10 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 	if (equalize_flow)
 	{
 		print_speed = flow / INT2MM(layer_thickness) / INT2MM(w);
+		if (gamma != 0.0)
+		{
+			print_speed /= std::pow(INT2MM(w) / 0.4, gamma);
+		}
 	}
 // 	float der = INT2MM(to.w - from.w) / vSizeMM(to.p - from.p) / 0.4;
 // 	print_speed -= der * 10;

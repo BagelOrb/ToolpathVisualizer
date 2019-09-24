@@ -656,6 +656,8 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 	    std::vector<std::list<ExtrusionLine>> translated_polygons = result_polygons_per_index;
 		for (auto & polys : translated_polygons) for (auto & poly : polys) for (auto & p : poly.junctions) p.p += Point(x, y) * MM2INT(25);
 		
+		gcode.setGamma(gamma);
+		
 		gcode.printOrdered(translated_polygons, result_polylines_per_index, aabb, false);
 		
 		gamma += 0.01;

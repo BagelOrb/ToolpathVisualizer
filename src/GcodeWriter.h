@@ -45,6 +45,7 @@ public:
     void move(Point p);
     void print(ExtrusionJunction from, ExtrusionJunction to);
     void extrude(float amount);
+	void setGamma(float gamma);
 private:
     void printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to);
     std::ofstream file;
@@ -61,6 +62,8 @@ private:
 	bool equalize_flow;
 	float flow;
 
+	float gamma; // gamma exponent of the gamma correction performed on the flow equalization
+	
     Point reduction;
 
     Point cur_pos;
