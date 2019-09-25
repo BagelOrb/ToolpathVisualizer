@@ -54,14 +54,14 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
     file << "M109 S210\n";
     file << "G0 F15000 X9 Y6 Z2\n";
     file << "G280\n";
-    file << "G1 F1500 E-6.5\n";
+    file << "G1 F1500 E-" << retraction_distance << "\n";
     file << ";LAYER_COUNT:1\n";
     file << ";LAYER:0\n";
     file << "M107\n";
     file << "M204 S625; set acceleration\n";
     file << "M205 X6 Y6; set jerk\n";
     file << "G0 F" << travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << INT2MM(layer_thickness) << " ; start location\n";
-    is_unretracted = true;
+    is_retracted = true;
     file << "\n";
 //     file << "M214 K1.0 ; linear advance\n";
 //     file << "M83 ;relative extrusion mode\n";
@@ -108,29 +108,29 @@ void GcodeWriter::printBrim(AABB aabb, coord_t count, coord_t w, coord_t dist)
         }
         prev = skuurt;
     }
-    print(polygons_per_index, polylines_per_index, aabb);
+    print(polygons_per_index, polylines_per_index, Point(0,0));
 }
 
-void GcodeWriter::print(std::vector<std::list<ExtrusionLine>> polygons_per_index, std::vector<std::list<ExtrusionLine>> polylines_per_index, AABB aabb, bool ordered, bool startup_and_reduction)
+void GcodeWriter::print(std::vector<std::list<ExtrusionLine>> polygons_per_index, std::vector<std::list<ExtrusionLine>> polylines_per_index, Point translation, bool ordered, bool startup_and_reduction)
 {
     if (ordered)
     {
-        printOrdered(polygons_per_index, polylines_per_index, aabb, startup_and_reduction);
+        printOrdered(polygons_per_index, polylines_per_index, translation, startup_and_reduction);
     }
     else
     {
-        printUnordered(polygons_per_index, polylines_per_index, aabb, startup_and_reduction);
+        printUnordered(polygons_per_index, polylines_per_index, translation, startup_and_reduction);
     }
 }
 
-void GcodeWriter::printOrdered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, AABB aabb, bool startup_and_reduction)
+void GcodeWriter::printOrdered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, Point translation, bool startup_and_reduction)
 {
     if (startup_and_reduction)
     {
         logError("not implemented yet\n");
         std::exit(-1);
     }
-    reduction = aabb.getMiddle() - build_plate_middle;
+    this->translation = build_plate_middle + translation;
 
     std::vector<std::vector<ExtrusionLine>> polygons_per_index_vector;
     polygons_per_index_vector.resize(polygons_per_index.size());
@@ -227,9 +227,9 @@ void GcodeWriter::printOrdered(std::vector<std::list<ExtrusionLine>>& polygons_p
 }
 
 
-void GcodeWriter::printUnordered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, AABB aabb, bool startup_and_reduction)
+void GcodeWriter::printUnordered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, Point translation, bool startup_and_reduction)
 {
-    reduction = aabb.getMiddle() - build_plate_middle;
+    this->translation = build_plate_middle + translation;
 
     std::vector<Path> paths;
     Polygons recreated;
@@ -355,15 +355,23 @@ void GcodeWriter::printPolyline(GcodeWriter::Path& poly, int start_idx)
     }
 }
 
+void GcodeWriter::retract()
+{
+    file << "G92 E0\n"; last_E = 0;
+    file << "G1 F1500 E-" << retraction_distance << "\n";
+	
+	is_retracted = true;
+}
+
 void GcodeWriter::move(Point p)
 {
     file << "\n";
-    p -= reduction;
+    p += translation;
     switch(type)
     {
         case type_UM3:
         default:
-            file << "G0 X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
+            file << "G0 F" << travel_speed << " X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
             break;
     }
     cur_pos = p;
@@ -371,13 +379,13 @@ void GcodeWriter::move(Point p)
 
 void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
 {
-    if (is_unretracted)
+    if (is_retracted)
     {
         file << "G0 E0 F1500 ; unretract\n";
-        is_unretracted = false;
+        is_retracted = false;
     }
-    from.p -= reduction;
-    to.p -= reduction;
+    from.p += translation;
+    to.p += translation;
 
     assert(from.p == cur_pos);
     bool discretize = std::abs(to.w - from.w) > 10;

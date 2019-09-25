@@ -653,13 +653,22 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 	for ( int x = -2; x <= 2; x++ )
 	for ( int y = -2; y <= 2; y++ )
 	{
-	    std::vector<std::list<ExtrusionLine>> translated_polygons = result_polygons_per_index;
-		for (auto & polys : translated_polygons) for (auto & poly : polys) for (auto & p : poly.junctions) p.p += Point(x, y) * MM2INT(25);
+		Point translation = Point(x, y) * MM2INT(25);
 		
 		gcode.setGamma(gamma);
 		
-		gcode.printOrdered(translated_polygons, result_polylines_per_index, aabb, false);
+		gcode.comment("Gamma:%f", gamma);
 		
+		gcode.comment("Pos:%i,%i", x, y);
+		
+		AABB aabb_t = aabb;
+		aabb_t.min += translation;
+		aabb_t.max += translation;
+		gcode.printBrim(aabb_t, 1, MM2INT(0.4), MM2INT(0.6));
+		
+		gcode.printOrdered(result_polygons_per_index, result_polylines_per_index, translation, false);
+		
+		gcode.retract();
 		gamma += 0.01;
 	}
 
