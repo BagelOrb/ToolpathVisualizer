@@ -2,6 +2,10 @@
 
 
 #include "GcodeWriter.h"
+
+#include <algorithm>
+#include <iomanip>
+
 #include "pathOrderOptimizer.h"
 #include "OrderOptimizer.h"
 #include "utils/logoutput.h"
@@ -22,6 +26,9 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
 {
     assert(file.good());
 
+	file << std::setprecision(3);
+	file << std::fixed;
+	
     file << ";START_OF_HEADER\n";
     file << ";HEADER_VERSION:0.1\n";
     file << ";FLAVOR:Griffin\n";
