@@ -13,7 +13,7 @@
 
 namespace visualizer
 {
-GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness, float print_speed, float travel_speed, float extrusion_multiplier, bool equalize_flow)
+GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, coord_t layer_thickness, float print_speed, float travel_speed, float extrusion_multiplier, bool equalize_flow)
 : file(filename.c_str())
 , type(type)
 , layer_thickness(layer_thickness)
@@ -41,6 +41,14 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
     file << ";EXTRUDER_TRAIN.0.MATERIAL.GUID:506c9f0d-e3aa-4bd4-b2d2-23e2425b1aa9\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.DIAMETER:0.4\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.NAME:AA 0.4\n";
+	if (dual_extrusion)
+	{
+	    file << ";EXTRUDER_TRAIN.1.INITIAL_TEMPERATURE:210\n";
+	    file << ";EXTRUDER_TRAIN.1.MATERIAL.VOLUME_USED:1150\n";
+	    file << ";EXTRUDER_TRAIN.1.MATERIAL.GUID:44a029e6-e31b-4c9e-a12f-9282e29a92ff\n";
+	    file << ";EXTRUDER_TRAIN.1.NOZZLE.DIAMETER:0.4\n";
+	    file << ";EXTRUDER_TRAIN.1.NOZZLE.NAME:AA 0.4\n";
+	}
     file << ";BUILD_PLATE.TYPE:glass\n";
     file << ";BUILD_PLATE.INITIAL_TEMPERATURE:60\n";
     file << ";BUILD_VOLUME.TEMPERATURE:28\n";
@@ -54,12 +62,12 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
     file << ";PRINT.SIZE.MAX.Z:2\n";
     file << ";END_OF_HEADER\n";
     file << ";Generated with libVisualizer\n";
-    file << "T0\n";
+    file << "T1\n"; current_extruder = 1;
     file << "M82 ;absolute extrusion mode\n";
     file << "\n";
     file << "G92 E0\n";
     file << "M109 S210\n";
-    file << "G0 F15000 X9 Y6 Z2\n";
+    file << "G0 F1500 X9 Y6 Z2\n";
     file << "G280\n";
     file << "G1 F1500 E-" << retraction_distance << "\n";
     file << ";LAYER_COUNT:1\n";
@@ -67,7 +75,8 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
     file << "M107\n";
     file << "M204 S625; set acceleration\n";
     file << "M205 X6 Y6; set jerk\n";
-    file << "G0 F" << travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << INT2MM(layer_thickness) << " ; start location\n";
+    file << "G0 F" << 60.0 * travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << INT2MM(layer_thickness) << " ; start location\n";
+	cur_z = layer_thickness;
     is_retracted = true;
     file << "\n";
 //     file << "M214 K1.0 ; linear advance\n";
@@ -80,7 +89,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, coord_t layer_thickness
 GcodeWriter::~GcodeWriter()
 {
     
-    file << "G0 F" << travel_speed << " X" << 20 << " Y" << 20 << " Z" << (INT2MM(layer_thickness) + 0.18) << " ; start location\n";
+    file << "G0 F" << 60.0 * travel_speed << " X" << 20 << " Y" << 20 << " Z" << (INT2MM(layer_thickness) + 0.18) << " ; start location\n";
 //     file << "M214 K0.0\n";
     file << "M107\n";
     file.close();
@@ -128,7 +137,8 @@ void GcodeWriter::printRaft(const Polygons& outline)
 	coord_t spacing_0 = MM2INT(0.7);
 	coord_t line_width_0 = MM2INT(0.6);
 	coord_t layer_thickness_0 = MM2INT(0.3);
-	file << "G0 Z" << INT2MM(layer_thickness_0) << '\n';
+	cur_z = layer_thickness_0;
+	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	printBrim(outline, 1, line_width_0, 0);
 	Polygons inset_outline = outline.offset(0);//-line_width_0 / 2);
 	std::vector<ExtrusionLine> lines = generateLines(inset_outline, line_width_0, spacing_0, 45.0);
@@ -136,11 +146,13 @@ void GcodeWriter::printRaft(const Polygons& outline)
 	coord_t spacing_1 = MM2INT(0.3);
 	coord_t line_width_1 = MM2INT(0.3);
 	coord_t layer_thickness_1 = MM2INT(0.1);
-	file << "G0 Z" << INT2MM(layer_thickness_0 + layer_thickness_1) << '\n';
+	cur_z += layer_thickness_1;
+	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	lines = generateLines(outline, line_width_1, spacing_1, -45.0);
 	printLinesByOptimizer(lines);
 	
-	file << "G0 Z" << INT2MM(layer_thickness_0 + layer_thickness_1 + layer_thickness) << '\n';
+	cur_z += layer_thickness;
+	file << "G0 Z" << INT2MM(cur_z) << '\n';
 }
 
 
@@ -215,7 +227,13 @@ std::vector<ExtrusionLine> GcodeWriter::generateLines(const Polygons& outline, c
 
 void GcodeWriter::setTranslation(Point p)
 {
-    this->translation = build_plate_middle + p;
+    this->translation = build_plate_middle + p - extruder_offset[current_extruder];
+}
+
+void GcodeWriter::setNominalSpeed(float print_speed)
+{
+	this->print_speed = print_speed;
+    this->flow = print_speed * INT2MM(layer_thickness) * 0.4;
 }
 
 void GcodeWriter::print(const std::vector<std::list<ExtrusionLine>> polygons_per_index, const std::vector<std::list<ExtrusionLine>> polylines_per_index, bool ordered, bool startup_and_reduction)
@@ -463,6 +481,31 @@ void GcodeWriter::printPolyline(GcodeWriter::Path& poly, int start_idx)
     }
 }
 
+void GcodeWriter::switchExtruder(int extruder_nr)
+{
+	
+    this->translation = translation + extruder_offset[current_extruder];
+	
+	int old_extruder = current_extruder;
+	file << "G92 E0\n";
+	file << "T" << extruder_nr << '\n'; current_extruder = extruder_nr;
+	
+    this->translation = translation - extruder_offset[current_extruder];
+	
+	file << "G92 E0\n"; last_E = 0;
+	file << "M109 S210\n";
+	file << "M104 T" << old_extruder << " S0\n";
+	file << "M106 S255\n";
+	file << "M104 S205\n";
+	file << "G1 F1500 E-6.5\n";
+	file << "G1 F600 Z2.324\n";
+	file << "G0 F1500 X9 Y6 Z2.324\n";
+	file << "G0 X9 Y6 Z4\n";
+	file << "G280\n";
+	file << "G0 Z" << INT2MM(cur_z) << '\n';
+	
+}
+
 void GcodeWriter::retract()
 {
     file << "G92 E0\n"; last_E = 0;
@@ -479,7 +522,7 @@ void GcodeWriter::move(Point p)
     {
         case type_UM3:
         default:
-            file << "G0 F" << travel_speed << " X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
+            file << "G0 F" << 60.0 * travel_speed << " X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
             break;
     }
     cur_pos = p;
@@ -489,7 +532,7 @@ void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
 {
     if (is_retracted)
     {
-        file << "G0 E0 F1500 ; unretract\n";
+        file << "G0 F1500 E0 ; unretract\n";
         is_retracted = false;
     }
     from.p += translation;
@@ -544,7 +587,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
         default:
             last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
 //             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
-            file << "G1 F" << print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y)
+            file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y)
                 << " E" << last_E << "\n";
             break;
     }

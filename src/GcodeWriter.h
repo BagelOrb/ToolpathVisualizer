@@ -28,7 +28,7 @@ class GcodeWriter
         {}
     };
 public:
-    GcodeWriter(std::string filename, int type, coord_t layer_thickness = MM2INT(0.2), float print_speed = 600, float travel_speed = 3500, float extrusion_multiplier = 1.0, bool equalize_flow = true);
+    GcodeWriter(std::string filename, int type, bool dual_extrusion, coord_t layer_thickness = MM2INT(0.2), float print_speed = 20, float travel_speed = 60, float extrusion_multiplier = 1.0, bool equalize_flow = true);
     ~GcodeWriter();
     static constexpr int type_UM3 = 1;
     void printBrim(const Polygons& outline, coord_t count, coord_t w = 400, coord_t dist = 600);
@@ -49,10 +49,14 @@ public:
     void printPolyline(Path& poly, int start_idx);
     void reduce(Path& polyline, size_t start_point_idx, coord_t initial_width, coord_t traveled_dist);
 	void setTranslation(Point p);
+	void setNominalSpeed(float flow);
 	void retract();
     void move(Point p);
     void print(ExtrusionJunction from, ExtrusionJunction to);
     void extrude(float amount);
+	
+	void switchExtruder(int extruder_nr);
+	
 	void setGamma(float gamma);
 	void setTemp(int temp);
 	template<class... Args>
@@ -71,7 +75,9 @@ private:
     coord_t discretization_size = MM2INT(0.1);
     coord_t nozzle_size = MM2INT(0.4);
 	float retraction_distance = 6.5;
+	Point extruder_offset[2] = {Point(0,0), Point(MM2INT(18),0)};
 
+	
     coord_t layer_thickness;
     float print_speed;
     float travel_speed;
@@ -83,7 +89,9 @@ private:
 	
     Point translation;
 
+	int current_extruder;
     Point cur_pos;
+	coord_t cur_z;
     bool is_retracted;
     float last_E = 0;
 

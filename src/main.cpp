@@ -648,26 +648,28 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, MM2INT(0.15));
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, MM2INT(0.15), 50.0);
 	
-// 	Polygons raft_outline = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
-	Polygons raft_outline;
-	raft_outline.add(aabb.expanded(MM2INT(25) * 2).toPolygon());
+	
+	coord_t sizer = 2;
+	
+	Polygons raft_outline = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
+	raft_outline.add(aabb.expanded(MM2INT(25) * sizer).toPolygon());
 	raft_outline = raft_outline.offset(MM2INT(5.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
 
+	gcode.switchExtruder(0);
+	gcode.setNominalSpeed(30.0);
+	
 	float gamma = 0.0;
-	float temp = 200.0;
-	for ( int x = -2; x <= 2; x++ )
-	for ( int y = -2; y <= 2; y++ )
+	for ( int x = -sizer; x <= sizer; x++ )
+	for ( int y = -sizer; y <= sizer; y++ )
 	{
 		Point translation = Point(x, y) * MM2INT(25);
 		gcode.setTranslation(translation);
 		
-// 		gcode.setGamma(gamma);
-// 		gcode.comment("Gamma:%f", gamma);
-		gcode.setTemp(temp);
-		gcode.comment("Temp:%f", temp);
+		gcode.setGamma(gamma);
+		gcode.comment("Gamma:%f", gamma);
 		
 		
 		gcode.comment("Pos:%i,%i", x, y);
@@ -677,9 +679,8 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 		gcode.printOrdered(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		gamma += 0.01;
+		gamma += 0.005;
 		
-		temp += 3;
 	}
 
 	std::cout << "Computing statistics...\n";
