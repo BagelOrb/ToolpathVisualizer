@@ -31,22 +31,30 @@ public:
     GcodeWriter(std::string filename, int type, coord_t layer_thickness = MM2INT(0.2), float print_speed = 600, float travel_speed = 3500, float extrusion_multiplier = 1.0, bool equalize_flow = true);
     ~GcodeWriter();
     static constexpr int type_UM3 = 1;
-    void printBrim(AABB aabb, coord_t count, coord_t w = 400, coord_t dist = 600);
+    void printBrim(const Polygons& outline, coord_t count, coord_t w = 400, coord_t dist = 600);
+	void printRaft(const Polygons& outline);
+	
+	std::vector<ExtrusionLine> generateLines(const Polygons& outline, coord_t line_width, coord_t spacing, float angle);
+	std::vector<ExtrusionLine> generateLines(const Polygons& outline, coord_t line_width, coord_t spacing);
     /*!
      * 
      * \param ordered Whether to print all index 0 polylines before any index 1 polylines etc.
      */
-    void print(std::vector<std::list<ExtrusionLine>> polygons_per_index, std::vector<std::list<ExtrusionLine>> polylines_per_index, Point translation, bool ordered = false, bool startup_and_reduction = true);
-    void printOrdered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, Point translation, bool startup_and_reduction);
-    void printUnordered(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, Point translation, bool startup_and_reduction);
+    void print(const std::vector<std::list<ExtrusionLine>> polygons_per_index, const std::vector<std::list<ExtrusionLine>> polylines_per_index, bool ordered = false, bool startup_and_reduction = true);
+    void printOrdered(const std::vector<std::list<ExtrusionLine>>& polygons_per_index, const std::vector<std::list<ExtrusionLine>>& polylines_per_index, bool startup_and_reduction);
+    void printUnordered(const std::vector<std::list<ExtrusionLine>>& polygons_per_index, const std::vector<std::list<ExtrusionLine>>& polylines_per_index, bool startup_and_reduction);
+	
+	void printLinesByOptimizer(const std::vector<ExtrusionLine>& lines);
     void printPolygon(Path& polygon, int start_idx);
     void printPolyline(Path& poly, int start_idx);
     void reduce(Path& polyline, size_t start_point_idx, coord_t initial_width, coord_t traveled_dist);
+	void setTranslation(Point p);
 	void retract();
     void move(Point p);
     void print(ExtrusionJunction from, ExtrusionJunction to);
     void extrude(float amount);
 	void setGamma(float gamma);
+	void setTemp(int temp);
 	template<class... Args>
 	void comment(std::string format, Args... args)
 	{

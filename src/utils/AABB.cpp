@@ -87,18 +87,31 @@ void AABB::include(const AABB other)
     include(other.max);
 }
 
-void AABB::expand(int dist)
+AABB AABB::expanded(int dist)
+{
+	AABB ret = *this;
+	return ret.expand(dist);
+}
+
+AABB& AABB::expand(int dist)
 {
     if (min == Point(POINT_MAX, POINT_MAX) || max == Point(POINT_MIN, POINT_MIN))
     {
-        return;
+        return *this;
     }
     min.X -= dist;
     min.Y -= dist;
     max.X += dist;
     max.Y += dist;
+	return *this;
 }
 
+Polygons AABB::toPolygons() const
+{
+	Polygons ret;
+	ret.add(toPolygon());
+	return ret;
+}
 Polygon AABB::toPolygon() const
 {
     Polygon ret;
