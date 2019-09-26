@@ -581,7 +581,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 		double back_pressure = INT2MM(w - 400) / 0.4 / INT2MM(layer_thickness);
 		print_speed = (flow - gamma * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
 		print_speed = std::max(1.0, print_speed);
-		slippage_compensation_factor = 1.0 + back_pressure * 0.15 * (15.0/100.0); // twice the normal width increases feader wheel speed by 15% at a layer height of 0.15mm
+		slippage_compensation_factor = 1.0 + back_pressure * 0.15 * (5.0/100.0); // twice the normal width increases feader wheel speed by 5% at a layer height of 0.15mm
 	}
 // 	float der = INT2MM(to.w - from.w) / vSizeMM(to.p - from.p) / 0.4;
 // 	print_speed -= der * 10;
