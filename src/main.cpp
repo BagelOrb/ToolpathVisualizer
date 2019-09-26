@@ -648,7 +648,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, MM2INT(0.15), 50.0);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, MM2INT(0.2), 50.0, 60.0, 1.1, true);
 	
 	
 	coord_t sizer = 2;
@@ -679,7 +679,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 		gcode.printOrdered(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		gamma += 0.005;
+		gamma += 0.01;
 		
 	}
 
