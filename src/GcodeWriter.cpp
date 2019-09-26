@@ -67,7 +67,8 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
     file << "\n";
     file << "G92 E0\n";
     file << "M109 S210\n";
-    file << "G0 F1500 X9 Y6 Z2\n";
+//     file << "G0 F1500 X9 Y6 Z2\n"; // for T0
+    file << "G0 F1500 X204 Y6 Z2\n";
     file << "G280\n";
     file << "G1 F1500 E-" << retraction_distance << "\n";
     file << ";LAYER_COUNT:1\n";
