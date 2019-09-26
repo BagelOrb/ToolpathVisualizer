@@ -143,6 +143,15 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 		std::exit(-1);
 	}
 
+	{
+		SVG svg("visualization/points.svg", aabb);
+		svg.writeAreas(polys);
+		for (auto& lines : result_polygons_per_index)
+			for (auto& line : lines)
+				for (auto& j : line.junctions)
+					svg.writePoint(j.p, false, 0.25);
+	}
+	
 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
