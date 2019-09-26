@@ -94,6 +94,7 @@ private:
 	coord_t cur_z;
     bool is_retracted;
     float last_E = 0;
+	double total_naive_print_time = 0.0;
 
     float getExtrusionFilamentMmPerMmMove(coord_t width) const;
 	float getExtrusionFilamentMmPerCubicMm() const;

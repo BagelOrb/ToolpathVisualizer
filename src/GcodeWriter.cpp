@@ -88,7 +88,9 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
 
 GcodeWriter::~GcodeWriter()
 {
-    
+	std::cout << "Total naive print time: " << (total_naive_print_time / 60.0) << " minutes.\n";
+
+
     file << "G0 F" << 60.0 * travel_speed << " X" << 20 << " Y" << 20 << " Z" << (INT2MM(layer_thickness) + 0.18) << " ; start location\n";
 //     file << "M214 K0.0\n";
     file << "M107\n";
@@ -518,6 +520,7 @@ void GcodeWriter::move(Point p)
 {
     file << "\n";
     p += translation;
+	total_naive_print_time += vSizeMM(cur_pos - p) / travel_speed;
     switch(type)
     {
         case type_UM3:
@@ -581,6 +584,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 	}
 // 	float der = INT2MM(to.w - from.w) / vSizeMM(to.p - from.p) / 0.4;
 // 	print_speed -= der * 10;
+	total_naive_print_time += vSizeMM(to.p - from.p) / print_speed;
     switch(type)
     {
         case type_UM3:
