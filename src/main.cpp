@@ -53,7 +53,7 @@ void convertSvg2SmoothPathPlanningFormat(const Polygons polys)
 
 float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
-float flow_modifier = 1.1;
+float flow_modifier = 1.05;
 coord_t layer_thickness = MM2INT(0.2);
 float gamma = 0.2;
 
