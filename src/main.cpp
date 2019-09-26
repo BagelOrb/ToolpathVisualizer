@@ -39,57 +39,45 @@ using visualizer::Point;
 namespace visualizer
 {
 
-
-void test(std::string input_outline_filename, std::string output_prefix, std::string input_segment_file)
+void convertSvg2SmoothPathPlanningFormat(const Polygons polys)
 {
-	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
-    Polygons polys = is_svg? SVGloader::load(input_outline_filename) : TXTloader::load(input_outline_filename);
+	std::cerr << "0.3\n";
+	std::cerr << "1.0\n";
+	for (ConstPolygonRef poly : polys)
+	{
+		std::cerr << poly.size() << '\n';
+		for (Point p : poly)
+			std::cerr << INT2MM(p.X) << " " << INT2MM(p.Y) << '\n';
+	}
+}
+
+float nominal_print_speed = 30.0;
+float travel_speed = 60.0;
+float flow_modifier = 1.1;
+coord_t layer_thickness = MM2INT(0.2);
+float gamma = 0.2;
+
+// raft settings
+float nominal_raft_speed = 50.0;
+
+void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons polys, const std::string output_prefix)
+{
 	AABB aabb(polys);
-    
-
-	bool convert_svg_to_smooth_path_planning_format = false;
-	if (convert_svg_to_smooth_path_planning_format)
-	{
-		std::cerr << "0.3\n";
-		std::cerr << "1.0\n";
-		for (PolygonRef poly : polys)
-		{
-			std::cerr << poly.size() << '\n';
-			for (Point p : poly)
-				std::cerr << INT2MM(p.X) << " " << INT2MM(p.Y) << '\n';
-		}
-	}
-    
-    PathReader reader;
-	if (reader.open(input_segment_file))
-	{
-		std::cerr << "Error opening " << input_segment_file << "!\n";
-		std::exit(-1);
-	}
-	
-    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
-    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
-
-	if (reader.read(result_polygons_per_index, result_polylines_per_index))
-	{
-		std::cerr << "Error reading " << input_segment_file << "!\n";
-		std::exit(-1);
-	}
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, MM2INT(0.2), 50.0, 60.0, 1.1, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	
 	coord_t sizer = 2;
 	
-	Polygons raft_outline = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
+	Polygons raft_outline; // = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
 	raft_outline.add(aabb.expanded(MM2INT(25) * sizer).toPolygon());
 	raft_outline = raft_outline.offset(MM2INT(5.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
-	gcode.setNominalSpeed(30.0);
+	gcode.setNominalSpeed(nominal_print_speed);
 	
 	float gamma = 0.0;
 	for ( int x = -sizer; x <= sizer; x++ )
@@ -110,8 +98,52 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 		
 		gcode.retract();
 		gamma += 0.01;
-		
 	}
+}
+
+void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons polys, const std::string output_prefix)
+{
+	AABB aabb(polys);
+
+    std::ostringstream ss;
+    ss << "visualization/" << output_prefix << ".gcode";
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	
+	Polygons raft_outline = polys.offset(MM2INT(10.0), ClipperLib::jtRound).offset(MM2INT(-5.0), ClipperLib::jtRound);
+	gcode.printRaft(raft_outline);
+
+	gcode.switchExtruder(0);
+	gcode.setNominalSpeed(nominal_print_speed);
+	gcode.setGamma(gamma);
+	gcode.comment("gamma: %f", gamma);
+	
+	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
+	
+	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
+}
+
+void test(std::string input_outline_filename, std::string output_prefix, std::string input_segment_file)
+{
+	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
+    Polygons polys = is_svg? SVGloader::load(input_outline_filename) : TXTloader::load(input_outline_filename);
+	AABB aabb(polys);
+    
+    
+    PathReader reader;
+	if (reader.open(input_segment_file))
+	{
+		std::cerr << "Error opening " << input_segment_file << "!\n";
+		std::exit(-1);
+	}
+    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
+    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
+	if (reader.read(result_polygons_per_index, result_polylines_per_index))
+	{
+		std::cerr << "Error reading " << input_segment_file << "!\n";
+		std::exit(-1);
+	}
+
+	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
