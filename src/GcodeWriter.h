@@ -72,7 +72,7 @@ private:
     int type;
     Point build_plate_middle = Point(MM2INT(100), MM2INT(100));
     float filament_diameter = 2.85;
-    coord_t discretization_size = MM2INT(0.1);
+    coord_t discretization_size = MM2INT(0.2);
     coord_t nozzle_size = MM2INT(0.4);
 	float retraction_distance = 6.5;
 	Point extruder_offset[2] = {Point(0,0), Point(MM2INT(18),0)};
