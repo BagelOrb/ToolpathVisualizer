@@ -60,7 +60,7 @@ float gamma = 0.2;
 // raft settings
 float nominal_raft_speed = 50.0;
 
-void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons polys, const std::string output_prefix)
+void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 
@@ -101,7 +101,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	}
 }
 
-void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons polys, const std::string output_prefix)
+void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 
