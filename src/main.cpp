@@ -131,8 +131,8 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	result_polylines_per_index.back().emplace_back();
 	ExtrusionLine & line = result_polylines_per_index.back().back();
 	
-	coord_t min = MM2INT(0.3);
-	coord_t max = MM2INT(1.0);
+	coord_t min = MM2INT(0.35);
+	coord_t max = MM2INT(0.85);
 	coord_t mid = (min + max) / 2;
 	
 	coord_t gap = MM2INT(0.1);
