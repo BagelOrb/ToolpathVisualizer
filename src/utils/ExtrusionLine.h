@@ -16,6 +16,9 @@ struct ExtrusionLine
     ExtrusionLine(coord_t inset_idx)
     : inset_idx(inset_idx)
     {}
+    ExtrusionLine()
+    : inset_idx(-1)
+    {}
     coord_t computeLength()
     {
         if (junctions.size() <= 1) return 0;
