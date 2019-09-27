@@ -131,8 +131,8 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	result_polylines_per_index.back().emplace_back();
 	ExtrusionLine & line = result_polylines_per_index.back().back();
 	
-	coord_t min = MM2INT(0.35);
-	coord_t max = MM2INT(0.85);
+	coord_t min = MM2INT(0.3);
+	coord_t max = MM2INT(1.0);
 	coord_t mid = (min + max) / 2;
 	
 	coord_t gap = MM2INT(0.1);
@@ -148,10 +148,12 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min)}));
 	
 	for ( std::vector<Point> & dist_and_widths : dist_and_widths_list)
 	{
-		dist_and_widths.emplace_back(MM2INT(10), (min + max) / 2);
+		dist_and_widths.emplace_back(MM2INT(5), (min + max) / 2);
 	}
 		
 	coord_t n_lines = 4;
@@ -173,7 +175,7 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 				current_pos.X -= dist_and_widths[idx + 1].X;
 			line.junctions.emplace_back(current_pos, max + min - dist_and_widths[idx].Y);
 		}
-		current_pos.Y += max + gap;
+		current_pos.Y += max + MM2INT(1.0);
 	}
 
 	AABB aabb;
