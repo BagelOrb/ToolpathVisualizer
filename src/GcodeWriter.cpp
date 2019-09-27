@@ -26,7 +26,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
 {
     assert(file.good());
 
-	file << std::setprecision(3);
+	file << std::setprecision(5);
 	file << std::fixed;
 	
     file << ";START_OF_HEADER\n";
@@ -526,6 +526,7 @@ void GcodeWriter::move(Point p)
     {
         case type_UM3:
         default:
+			file << std::setprecision(3);
             file << "G0 F" << 60.0 * travel_speed << " X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
             break;
     }
@@ -592,8 +593,10 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
         default:
             last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm() * slippage_compensation_factor;
 //             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
-            file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y)
-                << " E" << last_E << "\n";
+			file << std::setprecision(3);
+            file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y);
+			file << std::setprecision(5);
+			file << " E" << last_E << "\n";
             break;
     }
 }
@@ -605,6 +608,7 @@ void GcodeWriter::extrude(float amount)
         case type_UM3:
         default:
             last_E += amount;
+			file << std::setprecision(5);
             file << "G1 E" << last_E << "\n";
             break;
     }
