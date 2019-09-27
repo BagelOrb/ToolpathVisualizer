@@ -55,7 +55,7 @@ float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
 coord_t layer_thickness = MM2INT(0.2);
-float gamma = 0.2;
+float gamma = 0.0; // 0.2
 
 // raft settings
 float nominal_raft_speed = 50.0;
@@ -168,7 +168,6 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 			line.junctions.emplace_back(current_pos, dist_and_widths[idx].Y);
 		}
 		current_pos.Y += (max + min ) / 2 + gap;
-// 		line.junctions.emplace_back(current_pos, dist_and_widths.back().Y);
 		for ( coord_t idx = dist_and_widths.size() - 1 ; idx >= 0 ; idx-- )
 		{
 			if (idx < dist_and_widths.size() - 1)
