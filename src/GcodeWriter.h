@@ -70,7 +70,7 @@ private:
     void printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to);
     std::ofstream file;
     int type;
-    Point build_plate_middle = Point(MM2INT(100), MM2INT(100));
+    Point build_plate_middle = Point(MM2INT(233-18), MM2INT(215)) / 2;
     float filament_diameter = 2.85;
     coord_t discretization_size = MM2INT(0.2);
     coord_t nozzle_size = MM2INT(0.4);

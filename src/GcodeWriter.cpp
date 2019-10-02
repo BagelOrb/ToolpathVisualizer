@@ -502,8 +502,8 @@ void GcodeWriter::switchExtruder(int extruder_nr)
 	file << "M104 S205\n";
 	file << "G1 F1500 E-6.5\n";
 	file << "G1 F600 Z2.324\n";
-	file << "G0 F1500 X9 Y6 Z2.324\n";
-	file << "G0 X9 Y6 Z4\n";
+	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z2.324\n";
+	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z4\n";
 	file << "G280\n";
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	
