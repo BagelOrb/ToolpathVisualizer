@@ -55,7 +55,7 @@ float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
 coord_t layer_thickness = MM2INT(0.2);
-float gamma = 0.0; // 0.2
+float gamma = 0.2;
 
 // raft settings
 float nominal_raft_speed = 50.0;
@@ -111,13 +111,17 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	
 	Polygons raft_outline = polys.offset(MM2INT(6.0), ClipperLib::jtRound).offset(MM2INT(-3.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
+	gcode.retract();
 
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
 	gcode.setGamma(gamma);
 	gcode.comment("gamma: %f", gamma);
+	gcode.retract();
 	
+	gcode.move(aabb.min);
 	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
+	gcode.retract();
 	
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
 }
@@ -150,6 +154,8 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max)}));
 	
 	for ( std::vector<Point> & dist_and_widths : dist_and_widths_list)
 	{
@@ -216,7 +222,8 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 					svg.writePoint(j.p, false, 0.25);
 	}
 	
-	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+// 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
