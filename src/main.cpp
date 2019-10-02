@@ -70,7 +70,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	
-	Point grid_shape(3,4);
+	Point grid_shape(4,6);
 	
 	Polygons raft_outline; // = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
 	AABB raft_aabb = aabb;
@@ -143,33 +143,25 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	result_polylines_per_index.back().emplace_back();
 	ExtrusionLine & line = result_polylines_per_index.back().back();
 	
-	coord_t min = MM2INT(0.3);
-	coord_t max = MM2INT(1.0);
-	coord_t mid = (min + max) / 2;
+	coord_t minW = MM2INT(0.3);
+	coord_t maxW = MM2INT(1.0);
+	coord_t midW = (minW + maxW) / 2;
+	coord_t nrml = MM2INT(0.4);
 	
 	coord_t gap = MM2INT(0.1);
 	
-	std::list<std::vector<Point>> dist_and_widths_list;
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),mid), Point(MM2INT(50),mid)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),mid), Point(MM2INT(50),mid)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),max), Point(MM2INT(50),min)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),min), Point(MM2INT(50),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),max), Point(MM2INT(50),min)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(50),min), Point(MM2INT(50),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max), Point(MM2INT(10),min), Point(MM2INT(10),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min), Point(MM2INT(5),max), Point(MM2INT(5),min)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min), Point(MM2INT(3),max), Point(MM2INT(3),min)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max)}));
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max), Point(MM2INT(1.5),min), Point(MM2INT(1.5),max)}));
+	coord_t endL = MM2INT(5);
 	
-	for ( std::vector<Point> & dist_and_widths : dist_and_widths_list)
-	{
-		dist_and_widths.emplace_back(MM2INT(5), (min + max) / 2);
-	}
-		
+	std::list<std::vector<Point>> dist_and_widths_list;
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL * 2 + MM2INT(30),nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(30),maxW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(10),maxW), Point(MM2INT(10),minW), Point(MM2INT(10),maxW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,maxW), Point(MM2INT(10),minW), Point(MM2INT(10),maxW), Point(MM2INT(10),minW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,maxW), Point(MM2INT(30),minW), Point(endL,nrml)}));
+	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL * 2 + MM2INT(30),nrml)}));
+
 	coord_t n_lines = 4;
 	Point current_pos(0, 0);
 	for ( const std::vector<Point> & dist_and_widths : dist_and_widths_list)
@@ -181,20 +173,17 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 				current_pos.X += dist_and_widths[idx].X;
 			line.junctions.emplace_back(current_pos, dist_and_widths[idx].Y);
 		}
-		current_pos.Y += (max + min ) / 2 + gap;
-		for ( coord_t idx = dist_and_widths.size() - 1 ; idx >= 0 ; idx-- )
-		{
-			if (idx < dist_and_widths.size() - 1)
-				current_pos.X -= dist_and_widths[idx + 1].X;
-			line.junctions.emplace_back(current_pos, max + min - dist_and_widths[idx].Y);
-		}
-		current_pos.Y += max + MM2INT(1.0);
+		current_pos.Y += maxW + gap;
+		line.junctions.emplace_back(current_pos, nrml);
+		current_pos.X = 0;
+		line.junctions.emplace_back(current_pos, nrml);
+		current_pos.Y += maxW + MM2INT(1.0);
 	}
 
 	AABB aabb;
 	for ( ExtrusionJunction & j : line.junctions)
 		aabb.include(j.p);
-	aabb.expand(max / 2);
+	aabb.expand(maxW / 2);
 	polys = aabb.toPolygons();
 }
 
