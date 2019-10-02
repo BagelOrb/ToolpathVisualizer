@@ -63,27 +63,35 @@ float nominal_raft_speed = 50.0;
 void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
+	Point aabb_size = aabb.max - aabb.min;
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
 	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	
-	coord_t sizer = 2;
+	Point grid_shape(3,4);
 	
 	Polygons raft_outline; // = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
-	raft_outline.add(aabb.expanded(MM2INT(25) * sizer).toPolygon());
-	raft_outline = raft_outline.offset(MM2INT(5.0), ClipperLib::jtRound);
+	AABB raft_aabb = aabb;
+	for ( int x = 0; x < grid_shape.X; x++ )
+	for ( int y = 0; y < grid_shape.Y; y++ )
+	{
+		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + MM2INT(5)), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + MM2INT(5)));
+		raft_aabb.include(aabb.min + translation);
+		raft_aabb.include(aabb.max + translation);
+	}
+	raft_outline = raft_aabb.toPolygons().offset(MM2INT(3.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	float gamma = 0.0;
-	for ( int x = -sizer; x <= sizer; x++ )
-	for ( int y = -sizer; y <= sizer; y++ )
+	for ( int x = 0; x < grid_shape.X; x++ )
+	for ( int y = 0; y < grid_shape.Y; y++ )
 	{
-		Point translation = Point(x, y) * MM2INT(25);
+		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + MM2INT(5)), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + MM2INT(5)));
 		gcode.setTranslation(translation);
 		
 		gcode.setGamma(gamma);
@@ -211,16 +219,6 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 	}
 
 	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
-	
-	AABB aabb(polys);
-	{
-		SVG svg("visualization/points.svg", aabb);
-		svg.writeAreas(polys);
-		for (auto& lines : result_polygons_per_index)
-			for (auto& line : lines)
-				for (auto& j : line.junctions)
-					svg.writePoint(j.p, false, 0.25);
-	}
 	
 // 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
