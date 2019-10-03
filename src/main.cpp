@@ -108,7 +108,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		back_pressure_compensation += 0.01;
+		back_pressure_compensation += 0.02;
 	}
 }
 
