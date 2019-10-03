@@ -71,27 +71,29 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	
 	
 	Point grid_shape(4,6);
+	coord_t gap_dist = MM2INT(1);
 	
 	Polygons raft_outline; // = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
 	AABB raft_aabb = aabb;
 	for ( int x = 0; x < grid_shape.X; x++ )
 	for ( int y = 0; y < grid_shape.Y; y++ )
 	{
-		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + MM2INT(5)), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + MM2INT(5)));
+		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + gap_dist), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + gap_dist));
 		raft_aabb.include(aabb.min + translation);
 		raft_aabb.include(aabb.max + translation);
 	}
-	raft_outline = raft_aabb.toPolygons().offset(MM2INT(3.0), ClipperLib::jtRound);
+	raft_outline = raft_aabb.toPolygons().offset(MM2INT(2.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
 	
+	gcode.comment("TYPE:WALL-OUTER");
 	float gamma = 0.0;
 	for ( int x = 0; x < grid_shape.X; x++ )
 	for ( int y = 0; y < grid_shape.Y; y++ )
 	{
-		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + MM2INT(5)), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + MM2INT(5)));
+		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + gap_dist), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + gap_dist));
 		gcode.setTranslation(translation);
 		
 		gcode.setGamma(gamma);
@@ -100,9 +102,10 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		
 		gcode.comment("Pos:%i,%i", x, y);
 		
-		gcode.printBrim(aabb.toPolygons(), 1, MM2INT(0.4), MM2INT(0.6));
+// 		gcode.printBrim(aabb.toPolygons(), 1, MM2INT(0.4), MM2INT(0.6));
+// 		gcode.retract();
 		
-		gcode.printOrdered(result_polygons_per_index, result_polylines_per_index, false);
+		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
 		gamma += 0.01;

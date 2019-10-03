@@ -110,6 +110,7 @@ void GcodeWriter::setTemp(int temp)
 
 void GcodeWriter::printBrim(const Polygons& outline, coord_t count, coord_t w, coord_t dist)
 {
+	file << ";TYPE:SUPPORT\n";
     std::vector<std::list<ExtrusionLine>> polygons_per_index;
     std::vector<std::list<ExtrusionLine>> polylines_per_index;
     polygons_per_index.resize(1);
@@ -143,6 +144,9 @@ void GcodeWriter::printRaft(const Polygons& outline)
 	cur_z = layer_thickness_0;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	printBrim(outline, 1, line_width_0, 0);
+
+	file << ";TYPE:SUPPORT-INTERFACE\n";
+
 	Polygons inset_outline = outline.offset(0);//-line_width_0 / 2);
 	std::vector<ExtrusionLine> lines = generateLines(inset_outline, line_width_0, spacing_0, 45.0);
 	printLinesByOptimizer(lines);
