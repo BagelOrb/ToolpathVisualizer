@@ -57,7 +57,7 @@ public:
 	
 	void switchExtruder(int extruder_nr);
 	
-	void setGamma(float gamma);
+	void setBackPressureCompensation(float bpc);
 	void setTemp(int temp);
 	template<class... Args>
 	void comment(std::string format, Args... args)
@@ -85,7 +85,7 @@ private:
 	bool equalize_flow;
 	float flow;
 
-	float gamma; // gamma exponent of the gamma correction performed on the flow equalization
+	float back_pressure_compensation;
 	
     Point translation;
 

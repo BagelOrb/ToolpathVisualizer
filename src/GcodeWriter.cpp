@@ -22,7 +22,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
 , extrusion_multiplier(extrusion_multiplier)
 , equalize_flow(equalize_flow)
 , flow(print_speed * INT2MM(layer_thickness) * 0.4)
-, gamma(0.0)
+, back_pressure_compensation(0.0)
 {
     assert(file.good());
 
@@ -98,9 +98,9 @@ GcodeWriter::~GcodeWriter()
     file.close();
 }
 
-void GcodeWriter::setGamma(float gamma)
+void GcodeWriter::setBackPressureCompensation(float back_pressure_compensation)
 {
-	this->gamma = gamma;
+	this->back_pressure_compensation = back_pressure_compensation;
 }
 
 void GcodeWriter::setTemp(int temp)
@@ -584,7 +584,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 	if (equalize_flow)
 	{
 		double back_pressure = INT2MM(w - 400) / 0.4 / INT2MM(layer_thickness);
-		print_speed = (flow - gamma * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
+		print_speed = (flow - back_pressure_compensation * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
 		print_speed = std::max(1.0, print_speed);
 // 		slippage_compensation_factor = 1.0 + back_pressure * 0.15 * (5.0/100.0); // twice the normal width increases feader wheel speed by 5% at a layer height of 0.15mm
 	}

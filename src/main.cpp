@@ -89,15 +89,15 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	gcode.comment("TYPE:WALL-OUTER");
-	float gamma = 0.0;
+	float back_pressure_compensation = 0.0;
 	for ( int x = 0; x < grid_shape.X; x++ )
 	for ( int y = 0; y < grid_shape.Y; y++ )
 	{
 		Point translation = Point(.5 * (2 * x - grid_shape.X) * (aabb_size.X + gap_dist), .5 * (2 * y - grid_shape.Y) * (aabb_size.Y + gap_dist));
 		gcode.setTranslation(translation);
 		
-		gcode.setGamma(gamma);
-		gcode.comment("Gamma:%f", gamma);
+		gcode.setBackPressureCompensation(back_pressure_compensation);
+		gcode.comment("Back-pressure compensation: %f", back_pressure_compensation);
 		
 		
 		gcode.comment("Pos:%i,%i", x, y);
@@ -108,7 +108,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		gamma += 0.01;
+		back_pressure_compensation += 0.01;
 	}
 }
 
@@ -126,7 +126,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
-	gcode.setGamma(gamma);
+	gcode.setBackPressureCompensation(gamma);
 	gcode.comment("gamma: %f", gamma);
 	gcode.retract();
 	
