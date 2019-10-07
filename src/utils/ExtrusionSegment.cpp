@@ -89,7 +89,27 @@ Polygons ExtrusionSegment::toPolygons(bool reduced) const
 
 double ExtrusionSegment::getArea(bool reduced) const
 {
-	return toPolygons(reduced).area(); // TODO: compute directly to save time
+	coord_t r = from.w / 2;
+	coord_t s = to.w / 2;
+	coord_t d2 = vSize2(to.p - from.p);
+	coord_t d = sqrt(d2);
+	coord_t dr = s - r;
+	coord_t l2 = d2 - dr * dr;
+	coord_t l = sqrt(l2);
+	coord_t trapezoid_area = l * (r + s) / 2;
+	double a = asin(sqrt(INT2MM2(l2) / INT2MM2(d2)));
+	double b = M_PI - a;
+	if (to.w > from.w)
+		std::swap(a, b);
+	coord_t r2 = r * r;
+	coord_t s2 = s * s;
+	coord_t start_area = .5 * b * r2;
+	coord_t end_area = reduced? - .5 * b * s2 : .5 * a * s2;
+	
+	coord_t total_area = (trapezoid_area + end_area + start_area) * 2;
+	
+	assert(double(std::abs(total_area - toPolygons(reduced).area())) / double(total_area) < 0.01);
+	return total_area;
 }
 
 }//namespace cura
