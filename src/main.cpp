@@ -137,6 +137,27 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
 }
 
+void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+{
+	AABB aabb(polys);
+
+    std::ostringstream ss;
+    ss << "visualization/" << output_prefix << ".gcode";
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	
+	gcode.switchExtruder(0);
+	gcode.setNominalSpeed(nominal_print_speed);
+	gcode.setBackPressureCompensation(gamma);
+	gcode.comment("gamma: %f", gamma);
+	gcode.retract();
+	
+// 	gcode.move(aabb.min);
+// 	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
+	gcode.retract();
+	
+	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
+}
+
 void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys)
 {
 	result_polygons_per_index.clear();
@@ -213,7 +234,8 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
 	
 // 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
-	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+// 	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+	print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
