@@ -88,6 +88,8 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
 	
+	gcode.printBrim(raft_aabb.toPolygons(), 1);
+	
 	gcode.comment("TYPE:WALL-OUTER");
 	float back_pressure_compensation = 0.0;
 	for ( int x = 0; x < grid_shape.X; x++ )
@@ -130,7 +132,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.comment("gamma: %f", gamma);
 	gcode.retract();
 	
-	gcode.move(aabb.min);
+// 	gcode.move(aabb.min);
 	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
 	gcode.retract();
 	
