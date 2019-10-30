@@ -213,10 +213,11 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	polys = aabb.toPolygons();
 }
 
-void test(std::string input_outline_filename, std::string output_prefix, std::string input_segment_file)
+void test(std::string input_outline_filename, float input_outline_scaling, std::string output_prefix, std::string input_segment_file)
 {
 	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
     Polygons polys = is_svg? SVGloader::load(input_outline_filename) : TXTloader::load(input_outline_filename);
+    polys.applyMatrix(PointMatrix::scale(input_outline_scaling));
     
     
     PathReader reader;
@@ -255,13 +256,15 @@ int main(int argc, char *argv[])
     std::string input_outline_filename;
     std::string output_prefix;
     std::string input_segment_file;
+    float input_outline_scaling = 1.0;
     if (argc >= 2) input_outline_filename = argv[1];
     if (argc >= 3) output_prefix = argv[2];
     if (argc >= 4) input_segment_file = argv[3];
+    if (argc >= 5) input_outline_scaling = std::stof(argv[4]);
     long n = 1;
     for (int i = 0; i < n; i++)
     {
-        visualizer::test(input_outline_filename, output_prefix, input_segment_file);
+        visualizer::test(input_outline_filename, input_outline_scaling, output_prefix, input_segment_file);
 //         if (++i % std::max(1l, n / 100) == 0)
 //             std::cerr << (i / 100) << "%\n";
     }
