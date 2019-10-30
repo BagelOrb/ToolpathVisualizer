@@ -52,6 +52,12 @@ int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per
 				result_polygons_per_index[index].back().junctions.emplace_back(j);
 		}
 	}
+	
+	for (auto result_polygons : result_polygons_per_index)
+    {
+        std::remove_if(result_polygons.begin(), result_polygons.end(), [](const ExtrusionLine& line) { return line.junctions.empty(); } );
+    }
+	
     return 0;
 }
 
