@@ -85,6 +85,9 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
     file << "\n";
     cur_pos = build_plate_middle;
 	setTranslation(Point(0, 0));
+    
+    marlin_estimates.setFirmwareDefaults();
+    marlin_estimates.setPosition(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), /*E=*/0));
 }
 
 GcodeWriter::~GcodeWriter()
@@ -535,6 +538,7 @@ void GcodeWriter::move(Point p)
             break;
     }
     cur_pos = p;
+    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), travel_speed);
 }
 
 void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
@@ -603,6 +607,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 			file << " E" << last_E << "\n";
             break;
     }
+    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), print_speed);
 }
 
 void GcodeWriter::extrude(float amount)

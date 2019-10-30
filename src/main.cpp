@@ -86,6 +86,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
+    gcode.marlin_estimates.reset();
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	gcode.printBrim(raft_aabb.toPolygons(), 1);
@@ -112,6 +113,8 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		gcode.retract();
 		back_pressure_compensation += 0.05;
 	}
+    
+    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
 }
 
 void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
@@ -127,6 +130,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.retract();
 
 	gcode.switchExtruder(0);
+    gcode.marlin_estimates.reset();
 	gcode.setNominalSpeed(nominal_print_speed);
 	gcode.setBackPressureCompensation(gamma);
 	gcode.comment("gamma: %f", gamma);
@@ -137,6 +141,8 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.retract();
 	
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
+    
+    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
 }
 
 void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
@@ -158,6 +164,8 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
 	gcode.retract();
 	
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
+    
+    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
 }
 
 void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys)

@@ -11,6 +11,8 @@
 #include "utils/ExtrusionJunction.h"
 #include "utils/ExtrusionLine.h"
 
+#include "timeEstimate.h"
+
 namespace visualizer
 {
 
@@ -66,6 +68,7 @@ public:
 	    sprintf(buffer, format.c_str(), args...);
 		file << ";" << buffer << "\n";
 	}
+    TimeEstimateCalculator marlin_estimates;
 private:
     void printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to);
     std::ofstream file;
@@ -76,7 +79,6 @@ private:
     coord_t nozzle_size = MM2INT(0.4);
 	float retraction_distance = 6.5;
 	Point extruder_offset[2] = {Point(0,0), Point(MM2INT(18),0)};
-
 	
     coord_t layer_thickness;
     float print_speed;
