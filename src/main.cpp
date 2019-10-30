@@ -233,7 +233,7 @@ void test(std::string input_outline_filename, std::string output_prefix, std::st
 		std::exit(-1);
 	}
 
-	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
+// 	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
 	
 // 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 // 	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
