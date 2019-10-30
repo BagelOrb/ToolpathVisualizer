@@ -55,7 +55,7 @@ float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
 coord_t layer_thickness = MM2INT(0.2);
-float gamma = 0.2;
+float gamma = 0.5;
 
 // raft settings
 float nominal_raft_speed = 50.0;
@@ -110,7 +110,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		back_pressure_compensation += 0.02;
+		back_pressure_compensation += 0.05;
 	}
 }
 
