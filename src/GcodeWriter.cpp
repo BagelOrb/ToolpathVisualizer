@@ -568,6 +568,7 @@ void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
         Point vec = to.p - from.p;
         coord_t length = vSize(vec);
         coord_t segment_count = (length + discretization_size / 2) / discretization_size; // round to nearest
+        segment_count = std::max(coord_t(1), segment_count);
         ExtrusionJunction last = from;
         for (coord_t segment_idx = 0; segment_idx < segment_count; segment_idx++)
         {
@@ -576,8 +577,6 @@ void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
             last = here;
         }
     }
-    
-    cur_pos = to.p;
 }
 
 void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to)
@@ -607,6 +606,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 			file << " E" << last_E << "\n";
             break;
     }
+    cur_pos = to.p;
     marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), print_speed);
 }
 
