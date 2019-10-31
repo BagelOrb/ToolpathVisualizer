@@ -92,10 +92,14 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
 
 GcodeWriter::~GcodeWriter()
 {
+    retract();
+    file << "G0 F" << 60.0 * travel_speed << " Z" << (INT2MM(cur_z) + 1.0) << " ; Z hop\n";
+    
+    
 	std::cout << "Total naive print time: " << total_naive_print_time << "\n";
 
 
-    file << "G0 F" << 60.0 * travel_speed << " X" << 20 << " Y" << 20 << " Z" << (INT2MM(layer_thickness) + 0.18) << " ; start location\n";
+    file << "G0 F" << 60.0 * travel_speed << " X" << 20 << " Y" << 20 << " Z" << " ; start location\n";
 //     file << "M214 K0.0\n";
     file << "M107\n";
     file.close();
