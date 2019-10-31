@@ -125,6 +125,7 @@ void GcodeWriter::printBrim(const Polygons& outline, coord_t count, coord_t w, c
     for (int i = 0; i < count; i++)
     {
         Polygons skuurt = prev.offset(w, ClipperLib::jtRound);
+        skuurt.simplify(MM2INT(0.4), MM2INT(0.1));
         for (PolygonRef poly : skuurt)
         {
             polygons.emplace_back(0);
