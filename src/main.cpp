@@ -86,7 +86,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
-    gcode.marlin_estimates.reset();
+    gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	gcode.printBrim(raft_aabb.toPolygons(), 1);
@@ -130,7 +130,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.retract();
 
 	gcode.switchExtruder(0);
-    gcode.marlin_estimates.reset();
+    gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
 	gcode.setNominalSpeed(nominal_print_speed);
 	gcode.setBackPressureCompensation(gamma);
 	gcode.comment("gamma: %f", gamma);

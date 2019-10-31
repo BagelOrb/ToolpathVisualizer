@@ -10,6 +10,7 @@
 #include "utils/AABB.h"
 #include "utils/ExtrusionJunction.h"
 #include "utils/ExtrusionLine.h"
+#include "utils/types/Duration.h"
 
 #include "timeEstimate.h"
 
@@ -69,6 +70,7 @@ public:
 		file << ";" << buffer << "\n";
 	}
     TimeEstimateCalculator marlin_estimates;
+	Duration total_naive_print_time = 0.0;
 private:
     void printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to);
     std::ofstream file;
@@ -96,7 +98,6 @@ private:
 	coord_t cur_z;
     bool is_retracted;
     float last_E = 0;
-	double total_naive_print_time = 0.0;
 
     float getExtrusionFilamentMmPerMmMove(coord_t width) const;
 	float getExtrusionFilamentMmPerCubicMm() const;
