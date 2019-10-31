@@ -226,6 +226,49 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	polys = aabb.toPolygons();
 }
 
+void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys)
+{
+	result_polygons_per_index.clear();
+	result_polylines_per_index.clear();
+	
+	result_polylines_per_index.emplace_back();
+	result_polylines_per_index.back().emplace_back();
+	ExtrusionLine & line = result_polylines_per_index.back().back();
+	
+	coord_t minW = MM2INT(0.3);
+	coord_t maxW = MM2INT(1.0);
+	coord_t midW = (minW + maxW) / 2;
+	coord_t nrml = MM2INT(0.4);
+	
+    coord_t sample_dist = MM2INT(0.4);
+    
+	coord_t gap = MM2INT(1.2);
+	
+	coord_t n_lines = 4;
+    
+    coord_t min_r = MM2INT(20.0);
+    coord_t r = min_r;
+    float max_a = 10.0 * 2*M_PI;
+    
+    float constant_cycles = 2.0 * 2*M_PI;
+    
+    Point prev(min_r, 0);
+	for ( float a = 0; a < max_a; a += INT2MM(sample_dist) / INT2MM(r) )
+	{
+        Point current_pos(r * cos(a), r * sin(a));
+        coord_t w = std::max(float(minW), maxW - (maxW - nrml) * std::max(0.0f, a - constant_cycles) / (max_a - 2*constant_cycles));
+		line.junctions.emplace_back(current_pos, w);
+        r = min_r + a / (2*M_PI) * gap;
+        prev = current_pos;
+	}
+
+	Polygons polylines;
+    PolygonRef polyline = polylines.newPoly();
+	for ( ExtrusionJunction & j : line.junctions)
+		polyline.add(j.p);
+	polys = polylines.offsetPolyLine(gap).approxConvexHull(maxW - gap);
+}
+
 void test(std::string input_outline_filename, float input_outline_scaling, std::string output_prefix, std::string input_segment_file)
 {
 	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
@@ -248,10 +291,12 @@ void test(std::string input_outline_filename, float input_outline_scaling, std::
 	}
 
 // 	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
-	
-// 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+// 	widthLimitsTest(result_polylines_per_index, result_polygons_per_index, polys);
+// 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix, false);
 // 	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
-	print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+	
+//	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+ 	print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
