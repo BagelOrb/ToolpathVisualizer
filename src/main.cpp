@@ -54,8 +54,8 @@ void convertSvg2SmoothPathPlanningFormat(const Polygons polys)
 float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
-coord_t layer_thickness = MM2INT(0.2);
-float gamma = 0.5;
+coord_t layer_thickness = MM2INT(0.05);
+float gamma = 0.45;
 
 // raft settings
 float nominal_raft_speed = 50.0;
@@ -301,7 +301,7 @@ void test(std::string input_outline_filename, float input_outline_scaling, std::
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
 	stats.analyse(result_polygons_per_index, result_polylines_per_index);
-	stats.visualize(MM2INT(0.3), MM2INT(1.0));
+	stats.visualize(MM2INT(0.3), MM2INT(0.9));
 	stats.saveResultsCSV();
 }
 
