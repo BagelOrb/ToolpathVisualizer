@@ -117,7 +117,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
     std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
 }
 
-void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix, bool brim = true)
 {
 	AABB aabb(polys);
 
@@ -137,9 +137,13 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.retract();
 	
 // 	gcode.move(aabb.min);
-	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
-	gcode.retract();
+    if (brim)
+    {
+        gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
+        gcode.retract();
+    }
 	
+	gcode.comment("TYPE:WALL-OUTER");
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
     
     std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
@@ -163,6 +167,7 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
 // 	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
 	gcode.retract();
 	
+	gcode.comment("TYPE:WALL-OUTER");
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
     
     std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
