@@ -553,7 +553,7 @@ void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
     to.p += translation;
 
     assert(from.p == cur_pos);
-    bool discretize = std::abs(to.w - from.w) > 10;
+    bool discretize = std::abs(to.w - from.w) > MM2INT(0.01);
 
     if (from.p == to.p)
     {
