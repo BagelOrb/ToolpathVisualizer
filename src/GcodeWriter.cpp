@@ -523,6 +523,7 @@ void GcodeWriter::switchExtruder(int extruder_nr)
 
 void GcodeWriter::retract()
 {
+    if (is_retracted) return;
     file << "G92 E0\n"; last_E = 0;
     file << "G1 F1500 E-" << retraction_distance << "\n";
 	
@@ -594,15 +595,13 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 		double back_pressure = INT2MM(w - 400) / 0.4;
 		print_speed = (flow - back_pressure_compensation * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
 		print_speed = std::max(1.0, print_speed);
-// 		slippage_compensation_factor = 1.0 + back_pressure * 0.15 * (5.0/100.0); // twice the normal width increases feader wheel speed by 5% at a layer height of 0.15mm
 	}
-// 	float der = INT2MM(to.w - from.w) / vSizeMM(to.p - from.p) / 0.4;
-// 	print_speed -= der * 10;
+std::cerr << print_speed << '\n';
     switch(type)
     {
         case type_UM3:
         default:
-            last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm() * slippage_compensation_factor;
+            last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
 //             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
 			file << std::setprecision(3);
             file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y);

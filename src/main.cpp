@@ -165,7 +165,7 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
 	
 // 	gcode.move(aabb.min);
 // 	gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
-	gcode.retract();
+// 	gcode.retract();
 	
 	gcode.comment("TYPE:WALL-OUTER");
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
