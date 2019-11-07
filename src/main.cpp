@@ -55,7 +55,7 @@ float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
 coord_t layer_thickness = MM2INT(0.05);
-float gamma = 0.45;
+float kappa = 0.25;//0.45;
 
 // raft settings
 float nominal_raft_speed = 50.0;
@@ -132,8 +132,8 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.switchExtruder(0);
 //     gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
 	gcode.setNominalSpeed(nominal_print_speed);
-	gcode.setBackPressureCompensation(gamma);
-	gcode.comment("gamma: %f", gamma);
+	gcode.setBackPressureCompensation(kappa);
+	gcode.comment("kappa: %f", kappa);
 	gcode.retract();
 	
 // 	gcode.move(aabb.min);
@@ -159,8 +159,8 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
 	
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
-	gcode.setBackPressureCompensation(gamma);
-	gcode.comment("gamma: %f", gamma);
+	gcode.setBackPressureCompensation(kappa);
+	gcode.comment("kappa: %f", kappa);
 	gcode.retract();
 	
 // 	gcode.move(aabb.min);
