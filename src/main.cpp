@@ -236,8 +236,7 @@ void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_pe
 	ExtrusionLine & line = result_polylines_per_index.back().back();
 	
 	coord_t minW = MM2INT(0.3);
-	coord_t maxW = MM2INT(1.0);
-	coord_t midW = (minW + maxW) / 2;
+	coord_t maxW = MM2INT(1.2);
 	coord_t nrml = MM2INT(0.4);
 	
     coord_t sample_dist = MM2INT(0.4);
