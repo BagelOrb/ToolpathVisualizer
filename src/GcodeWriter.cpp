@@ -157,6 +157,7 @@ void GcodeWriter::printRaft(const Polygons& outline)
 
 	Polygons inset_outline = outline.offset(0);//-line_width_0 / 2);
 	std::vector<ExtrusionLine> lines = generateLines(inset_outline, line_width_0, spacing_0, 45.0);
+    setNominalSpeed(30.0);
 	printLinesByOptimizer(lines);
 	coord_t spacing_1 = MM2INT(0.3);
 	coord_t line_width_1 = MM2INT(0.3);
@@ -164,6 +165,8 @@ void GcodeWriter::printRaft(const Polygons& outline)
 	cur_z += layer_thickness_1;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	lines = generateLines(outline, line_width_1, spacing_1, -45.0);
+    
+    setNominalSpeed(30.0);
 	printLinesByOptimizer(lines);
 	
 	cur_z += layer_thickness;
