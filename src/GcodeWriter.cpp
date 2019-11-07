@@ -507,16 +507,16 @@ void GcodeWriter::switchExtruder(int extruder_nr)
 	
     this->translation = translation - extruder_offset[current_extruder];
 	
-	file << "G92 E0\n"; last_E = 0;
 	file << "M109 S210\n";
 	file << "M104 T" << old_extruder << " S0\n";
 	file << "M106 S255\n";
 	file << "M104 S205\n";
-	file << "G1 F1500 E-6.5\n";
 	file << "G1 F600 Z2.324\n";
 	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z2.324\n";
 	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z4\n";
 	file << "G280\n";
+	file << "G92 E0\n"; last_E = 0;
+	file << "G1 F1500 E-6.5\n"; is_retracted = true;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	
 }
