@@ -147,7 +147,7 @@ void GcodeWriter::printBrim(const Polygons& outline, coord_t count, coord_t w, c
 void GcodeWriter::printRaft(const Polygons& outline)
 {
 	coord_t spacing_0 = MM2INT(0.7);
-	coord_t line_width_0 = MM2INT(0.6);
+	coord_t line_width_0 = MM2INT(0.8);
 	coord_t layer_thickness_0 = MM2INT(0.3);
 	cur_z = layer_thickness_0;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
@@ -160,7 +160,7 @@ void GcodeWriter::printRaft(const Polygons& outline)
     setNominalSpeed(30.0);
 	printLinesByOptimizer(lines);
 	coord_t spacing_1 = MM2INT(0.3);
-	coord_t line_width_1 = MM2INT(0.3);
+	coord_t line_width_1 = MM2INT(0.35);
 	coord_t layer_thickness_1 = MM2INT(0.1);
 	cur_z += layer_thickness_1;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
