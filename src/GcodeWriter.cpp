@@ -599,7 +599,6 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 		print_speed = (flow - back_pressure_compensation * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
 		print_speed = std::max(1.0, print_speed);
 	}
-std::cerr << print_speed << '\n';
     switch(type)
     {
         case type_UM3:
