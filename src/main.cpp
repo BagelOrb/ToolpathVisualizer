@@ -54,7 +54,7 @@ void convertSvg2SmoothPathPlanningFormat(const Polygons polys)
 float nominal_print_speed = 30.0;
 float travel_speed = 60.0;
 float flow_modifier = 1.05;
-coord_t layer_thickness = MM2INT(0.05);
+coord_t layer_thickness = MM2INT(0.1);
 float kappa = 0.25;//0.45;
 
 // raft settings
@@ -226,7 +226,7 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	polys = aabb.toPolygons();
 }
 
-void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys)
+void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys, coord_t target_w = MM2INT(0.1))
 {
 	result_polygons_per_index.clear();
 	result_polylines_per_index.clear();
@@ -255,7 +255,7 @@ void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_pe
 	for ( float a = 0; a < max_a; a += INT2MM(sample_dist) / INT2MM(r) )
 	{
         Point current_pos(r * cos(a), r * sin(a));
-        coord_t w = std::max(float(minW), maxW - (maxW - nrml) * std::max(0.0f, a - constant_cycles) / (max_a - 2*constant_cycles));
+        coord_t w = std::min(maxW, std::max(minW, coord_t(target_w - (target_w - nrml) * std::max(0.0f, a - constant_cycles) / (max_a - 2*constant_cycles))));
 		line.junctions.emplace_back(current_pos, w);
         r = min_r + a / (2*M_PI) * gap;
         prev = current_pos;
