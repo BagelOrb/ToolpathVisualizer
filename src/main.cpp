@@ -90,6 +90,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	gcode.printBrim(raft_aabb.toPolygons(), 1);
+    gcode.retract();
 	
 	gcode.comment("TYPE:WALL-OUTER");
 	float back_pressure_compensation = 0.0;
