@@ -67,7 +67,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	
 	Point grid_shape(4,6);
@@ -112,7 +112,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
 		gcode.retract();
-		back_pressure_compensation += 0.05;
+		back_pressure_compensation += 0.1;
 	}
     
     std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
@@ -124,7 +124,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	Polygons raft_outline = polys.offset(MM2INT(6.0), ClipperLib::jtRound).offset(MM2INT(-3.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
@@ -290,13 +290,13 @@ void test(std::string input_outline_filename, float input_outline_scaling, std::
 		std::exit(-1);
 	}
 
-// 	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
+	varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
 // 	widthLimitsTest(result_polylines_per_index, result_polygons_per_index, polys);
 // 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix, false);
-// 	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+	squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 	
-//	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
- 	print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+// 	raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+// 	print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
 
 	std::cout << "Computing statistics...\n";
 	Statistics stats("external", output_prefix, polys, -1.0);
