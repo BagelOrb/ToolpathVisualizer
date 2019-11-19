@@ -184,7 +184,7 @@ void GcodeWriter::printRaft(const Polygons& outline)
     setNominalSpeed(30.0);
 	printLinesByOptimizer(lines);
 	coord_t spacing_1 = MM2INT(0.3);
-	coord_t line_width_1 = MM2INT(0.35);
+	coord_t line_width_1 = MM2INT(0.4);
 	coord_t layer_thickness_1 = MM2INT(0.1);
 	cur_z += layer_thickness_1;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
