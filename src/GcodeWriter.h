@@ -34,6 +34,7 @@ public:
     GcodeWriter(std::string filename, int type, bool dual_extrusion, coord_t layer_thickness = MM2INT(0.2), float print_speed = 20, float travel_speed = 60, float extrusion_multiplier = 1.0, bool equalize_flow = true);
     ~GcodeWriter();
     static constexpr int type_UM3 = 1;
+    static constexpr int type_UMS5 = 2;
     void printBrim(const Polygons& outline, coord_t count, coord_t w = 400, coord_t dist = 600);
 	void printRaft(const Polygons& outline);
 	
@@ -75,13 +76,15 @@ private:
     void printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJunction& to);
     std::ofstream file;
     int type;
-    Point build_plate_middle = Point(MM2INT(233), MM2INT(215)) / 2;
+    Point build_plate_middle;
     float filament_diameter = 2.85;
     coord_t discretization_size = MM2INT(0.2);
     coord_t nozzle_size = MM2INT(0.4);
 	float retraction_distance = 6.5;
-	Point extruder_offset[2] = {Point(0,0), Point(MM2INT(18),0)};
-	
+	Point extruder_offset[2] = {Point(0,0), Point(0,0)}; // set in constructor
+	float temp = 0; // set in constructor
+    
+    
     coord_t layer_thickness;
     float print_speed;
     float travel_speed;

@@ -28,6 +28,22 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
 
 	file << std::setprecision(5);
 	file << std::fixed;
+    
+    switch(type)
+    {
+        case type_UM3: build_plate_middle = Point(MM2INT(233), MM2INT(215)) / 2; break;
+        case type_UMS5: build_plate_middle = Point(MM2INT(345), MM2INT(250)) / 2; break;
+    }
+    switch(type)
+    {
+        case type_UM3: extruder_offset[1].X = MM2INT(18); break;
+        case type_UMS5: extruder_offset[1].X = MM2INT(22); break;
+    }
+    switch(type)
+    {
+        case type_UM3: temp = 210; break;
+        case type_UMS5: temp = 205; break;
+    }
 	
     file << ";START_OF_HEADER\n";
     file << ";HEADER_VERSION:0.1\n";
@@ -35,17 +51,21 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
     file << ";GENERATOR.NAME:Cura_SteamEngine\n";
     file << ";GENERATOR.VERSION:4.2.1\n";
     file << ";GENERATOR.BUILD_DATE:2019-08-01\n";
-    file << ";TARGET_MACHINE.NAME:Ultimaker 3\n";
-    file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:210\n";
+    switch(type)
+    {
+        case type_UM3: file << ";TARGET_MACHINE.NAME:Ultimaker 3\n"; break;
+        case type_UMS5: file << ";TARGET_MACHINE.NAME:Ultimaker S5\n"; break;
+    }
+    file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:" << temp << "\n";
     file << ";EXTRUDER_TRAIN.0.MATERIAL.VOLUME_USED:109\n";
-    file << ";EXTRUDER_TRAIN.0.MATERIAL.GUID:506c9f0d-e3aa-4bd4-b2d2-23e2425b1aa9\n";
+    file << ";EXTRUDER_TRAIN.0.MATERIAL.GUID:2433b8fb-dcd6-4e36-9cd5-9f4ee551c04c\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.DIAMETER:0.4\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.NAME:AA 0.4\n";
 	if (dual_extrusion)
 	{
-	    file << ";EXTRUDER_TRAIN.1.INITIAL_TEMPERATURE:210\n";
+	    file << ";EXTRUDER_TRAIN.1.INITIAL_TEMPERATURE:" << temp << "\n";
 	    file << ";EXTRUDER_TRAIN.1.MATERIAL.VOLUME_USED:1150\n";
-	    file << ";EXTRUDER_TRAIN.1.MATERIAL.GUID:44a029e6-e31b-4c9e-a12f-9282e29a92ff\n";
+	    file << ";EXTRUDER_TRAIN.1.MATERIAL.GUID:e509f649-9fe6-4b14-ac45-d441438cb4ef\n";
 	    file << ";EXTRUDER_TRAIN.1.NOZZLE.DIAMETER:0.4\n";
 	    file << ";EXTRUDER_TRAIN.1.NOZZLE.NAME:AA 0.4\n";
 	}
@@ -66,7 +86,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
     file << "M82 ;absolute extrusion mode\n";
     file << "\n";
     file << "G92 E0\n";
-    file << "M109 S210\n";
+    file << "M109 S" << temp << "\n";
 //     file << "G0 F1500 X9 Y6 Z2\n"; // for T0
     file << "G0 F1500 X204 Y6 Z2\n";
     file << "G280\n";
@@ -75,7 +95,11 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
     file << ";LAYER:0\n";
     file << "M107\n";
     file << "M204 S625; set acceleration\n";
-    file << "M205 X6 Y6; set jerk\n";
+    switch(type)
+    {
+        case type_UM3: file << "M205 X6 Y6; set jerk\n"; break;
+        case type_UMS5: file << "M205 X10 Y10; set jerk\n"; break;
+    }
     file << "G0 F" << 60.0 * travel_speed << " X" << INT2MM(build_plate_middle.X / 2) << " Y" << INT2MM(build_plate_middle.Y / 2) << " Z" << INT2MM(layer_thickness) << " ; start location\n";
 	cur_z = layer_thickness;
     is_retracted = true;
@@ -148,7 +172,7 @@ void GcodeWriter::printRaft(const Polygons& outline)
 {
 	coord_t spacing_0 = MM2INT(0.7);
 	coord_t line_width_0 = MM2INT(0.8);
-	coord_t layer_thickness_0 = MM2INT(0.3);
+	coord_t layer_thickness_0 = (type == type_UM3)? MM2INT(0.3) : MM2INT(0.24);
 	cur_z = layer_thickness_0;
 	file << "G0 Z" << INT2MM(cur_z) << '\n';
 	printBrim(outline, 1, line_width_0, 0);
@@ -510,13 +534,13 @@ void GcodeWriter::switchExtruder(int extruder_nr)
 	
     this->translation = translation - extruder_offset[current_extruder];
 	
-	file << "M109 S210\n";
+	file << "G92 E0\n";
+	file << "M109 S" << (temp - 10) << "\n";
 	file << "M104 T" << old_extruder << " S0\n";
 	file << "M106 S255\n";
-	file << "M104 S205\n";
-	file << "G1 F600 Z2.324\n";
-	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z2.324\n";
-	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z4\n";
+	file << "M104 S" << temp << "\n";
+	file << "G1 F" << 60.0 * travel_speed << " Z" << INT2MM(cur_z) << "\n";
+	file << "G0 F" << 60.0 * travel_speed << " X9 Y6 Z" << (INT2MM(cur_z) + 2.0) << "\n";
 	file << "G280\n";
 	file << "G92 E0\n"; last_E = 0;
 	file << "G1 F1500 E-6.5\n"; is_retracted = true;
