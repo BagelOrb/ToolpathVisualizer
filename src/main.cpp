@@ -71,7 +71,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	
 	
 	Point grid_shape(4,6);
-	coord_t gap_dist = MM2INT(1);
+	coord_t gap_dist = MM2INT(2);
 	
 	Polygons raft_outline; // = polys.offset(MM2INT(5.0), ClipperLib::jtRound);
 	AABB raft_aabb = aabb;
@@ -82,6 +82,7 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		raft_aabb.include(aabb.min + translation);
 		raft_aabb.include(aabb.max + translation);
 	}
+	raft_aabb.expand(MM2INT(2.0));
 	raft_outline = raft_aabb.toPolygons().offset(MM2INT(2.0), ClipperLib::jtRound);
 	gcode.printRaft(raft_outline);
 
@@ -188,12 +189,12 @@ void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_i
 	coord_t midW = (minW + maxW) / 2;
 	coord_t nrml = MM2INT(0.4);
 	
-	coord_t gap = MM2INT(0.1);
+	coord_t gap = MM2INT(0.7);
 	
 	coord_t endL = MM2INT(5);
 	
 	std::list<std::vector<Point>> dist_and_widths_list;
-	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL * 2 + MM2INT(30),nrml)}));
+// 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL * 2 + MM2INT(30),nrml)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(30),maxW), Point(endL,nrml)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(10),maxW), Point(MM2INT(10),minW), Point(MM2INT(10),maxW), Point(endL,nrml)}));
 	dist_and_widths_list.emplace_back(std::initializer_list<Point>({Point(0,nrml), Point(endL,minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(MM2INT(5),maxW), Point(MM2INT(5),minW), Point(endL,nrml)}));

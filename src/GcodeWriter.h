@@ -53,7 +53,7 @@ public:
     void printPolyline(Path& poly, int start_idx);
     void reduce(Path& polyline, size_t start_point_idx, coord_t initial_width, coord_t traveled_dist);
 	void setTranslation(Point p);
-	void setNominalSpeed(float flow);
+	void setNominalSpeed(float print_speed);
 	void retract();
     void move(Point p);
     void print(ExtrusionJunction from, ExtrusionJunction to);
