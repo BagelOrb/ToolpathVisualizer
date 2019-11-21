@@ -56,7 +56,7 @@ GcodeWriter::GcodeWriter(std::string filename, int type, bool dual_extrusion, co
         case type_UM3: file << ";TARGET_MACHINE.NAME:Ultimaker 3\n"; break;
         case type_UMS5: file << ";TARGET_MACHINE.NAME:Ultimaker S5\n"; break;
     }
-    file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:" << temp << "\n";
+	file << ";EXTRUDER_TRAIN.0.INITIAL_TEMPERATURE:" << (dual_extrusion? 20 : temp) << "\n";
     file << ";EXTRUDER_TRAIN.0.MATERIAL.VOLUME_USED:109\n";
     file << ";EXTRUDER_TRAIN.0.MATERIAL.GUID:2433b8fb-dcd6-4e36-9cd5-9f4ee551c04c\n";
     file << ";EXTRUDER_TRAIN.0.NOZZLE.DIAMETER:0.4\n";
