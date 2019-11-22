@@ -238,7 +238,7 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 // 	gcode.move(aabb.min);
     if (brim)
     {
-        gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(0.6));
+        gcode.printBrim(polys, 1, MM2INT(0.4), MM2INT(1.5));
         gcode.retract();
     }
 	

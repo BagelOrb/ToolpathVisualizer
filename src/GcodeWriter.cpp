@@ -148,7 +148,7 @@ void GcodeWriter::printBrim(const Polygons& outline, coord_t count, coord_t w, c
     std::list<ExtrusionLine>& polygons = polygons_per_index[0];
 
     Polygons prev = outline;
-    prev = prev.offset(dist - w);
+    prev = prev.offset(dist - w + dist, ClipperLib::jtRound).offset(- dist, ClipperLib::jtRound);
     
     for (int i = 0; i < count; i++)
     {
