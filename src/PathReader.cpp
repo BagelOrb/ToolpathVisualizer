@@ -10,12 +10,14 @@
 namespace visualizer
 {
 
+extern bool process_even_toolpaths_only;
+extern bool simplify_input_toolpaths;
 
 int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, std::vector<std::list<ExtrusionLine>> & result_polylines_per_index)
 {
     std::string line;
 	
-	int size, inset_nr;
+	int size, inset_nr, last_inset_nr;
 	double x, y, r, dx, dy;
 	
 	
@@ -27,16 +29,23 @@ int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per
 		inset_nr = 0;
         if (std::sscanf(line.c_str(), "closed %d %d", &size, &inset_nr) >= 1)
         {
-			if (inset_nr >= lines_per_index.size()) {
-				lines_per_index.resize(inset_nr + 1);
-			}
-			lines_per_index[inset_nr].emplace_back();
-			last_polyline = & lines_per_index[inset_nr].back();
+            last_inset_nr = inset_nr;
+            if (!process_even_toolpaths_only || last_inset_nr % 2 == 0)
+            {
+                if (inset_nr >= lines_per_index.size()) {
+                    lines_per_index.resize(inset_nr + 1);
+                }
+                lines_per_index[inset_nr].emplace_back();
+                last_polyline = & lines_per_index[inset_nr].back();
+            }
         }
         else if (std::sscanf(line.c_str(), "%lf %lf %lf %lf %lf", &x, &y, &r, &dx, &dy) >= 2)
 		{
 			assert(last_polyline);
-			last_polyline->emplace_back(Point(MM2INT(x), MM2INT(y)), MM2INT(2.0 * r));
+            if (!process_even_toolpaths_only || last_inset_nr % 2 == 0)
+            {
+                last_polyline->emplace_back(Point(MM2INT(x), MM2INT(y)), MM2INT(2.0 * r));
+            }
 		}
     }
     
@@ -45,7 +54,10 @@ int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per
 	{
 		for ( std::list<ExtrusionJunction> & line : lines_per_index[index] )
 		{
-			simplify(line);
+            if (simplify_input_toolpaths)
+            {
+                simplify(line);
+            }
 			
 			result_polygons_per_index[index].emplace_back(-1);
 			for (ExtrusionJunction j : line)

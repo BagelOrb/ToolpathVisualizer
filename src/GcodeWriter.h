@@ -31,7 +31,7 @@ class GcodeWriter
         {}
     };
 public:
-    GcodeWriter(std::string filename, int type, bool dual_extrusion, coord_t layer_thickness = MM2INT(0.2), float print_speed = 20, float travel_speed = 60, float extrusion_multiplier = 1.0, bool equalize_flow = true);
+    GcodeWriter(std::string filename, int type, bool dual_extrusion, coord_t layer_thickness, float print_speed, float travel_speed, float extrusion_multiplier, bool equalize_flow);
     ~GcodeWriter();
     static constexpr int type_UM3 = 1;
     static constexpr int type_UMS5 = 2;
