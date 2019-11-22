@@ -373,6 +373,7 @@ void GcodeWriter::printLinesByOptimizer(const std::vector<ExtrusionLine>& lines)
         if (start_idx == 0)
         {
             auto last = polyline.junctions.begin();
+            if (!shorterThen(last->p - cur_pos, MM2INT(1.2))) retract();
             move(last->p);
 //             if (startup_and_reduction) extrude(getExtrusionFilamentMmPerMmMove(last->w) / 2 * last->w / 2 * M_PI);
             for (auto junction_it = ++polyline.junctions.begin(); junction_it != polyline.junctions.end(); ++junction_it)
@@ -385,6 +386,7 @@ void GcodeWriter::printLinesByOptimizer(const std::vector<ExtrusionLine>& lines)
         else
         {
             auto last = polyline.junctions.rbegin();
+            if (!shorterThen(last->p - cur_pos, MM2INT(1.2))) retract();
             move(last->p);
 //             if (startup_and_reduction) extrude(getExtrusionFilamentMmPerMmMove(last->w) / 2 * last->w / 2 * M_PI);
             for (auto junction_it = ++polyline.junctions.rbegin(); junction_it != polyline.junctions.rend(); ++junction_it)
@@ -511,6 +513,7 @@ void GcodeWriter::printPolyline(GcodeWriter::Path& poly, int start_idx)
     }
     
     ExtrusionJunction* prev = &poly.junctions[start_idx];
+    if (!shorterThen(prev->p - cur_pos, MM2INT(1.2))) retract();
     move(prev->p);
 //     extrude(getExtrusionFilamentMmPerMmMove(prev->w) / 2 * prev->w / 2 * M_PI);
 
