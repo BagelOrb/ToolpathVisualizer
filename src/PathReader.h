@@ -45,7 +45,7 @@ protected:
 	static constexpr coord_t max_deviation = MM2INT(0.025);
 	static constexpr float max_reduce_angle = 130.0/180.0 * M_PI;
 
-	void simplify(std::list<ExtrusionJunction>& line) const;
+	void simplify(std::list<ExtrusionJunction>& line, bool closed) const;
 	bool shouldRemove(ExtrusionJunction & before, ExtrusionJunction & here, ExtrusionJunction & next) const;
 };
 
