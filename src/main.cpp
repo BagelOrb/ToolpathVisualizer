@@ -88,7 +88,7 @@ float kappa = 1.1; // 0.25;//0.45;
 
 float nominal_raft_speed = 50.0;
 
-
+coord_t unretracted_dist = MM2INT(1.0);
 
 bool readCommandLine(int argc, char **argv)
 {
