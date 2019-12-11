@@ -206,8 +206,6 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		
 		gcode.comment("Pos:%i,%i", x, y);
 		
-// 		gcode.printBrim(aabb.toPolygons(), 1, MM2INT(0.4), MM2INT(0.6));
-// 		gcode.retract();
 		
 		gcode.print(result_polygons_per_index, result_polylines_per_index, false);
 		
