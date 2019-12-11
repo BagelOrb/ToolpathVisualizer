@@ -450,7 +450,7 @@ void GcodeWriter::printPolygon(GcodeWriter::Path& polygon, int start_idx)
 {
     Path polyline(false);
     polyline.junctions.insert(polyline.junctions.end(), polygon.junctions.begin() + start_idx, polygon.junctions.end());
-    polyline.junctions.insert(polyline.junctions.end(), polygon.junctions.begin(), polygon.junctions.begin() + (start_idx + 1) % polygon.junctions.size());
+    polyline.junctions.insert(polyline.junctions.end(), polygon.junctions.begin(), polygon.junctions.begin() + (start_idx + 1));
     
 //     reduce(polyline, polyline.junctions.size() - 1, polyline.junctions.back().w, 0);
     if (polyline.junctions.empty()) return;
