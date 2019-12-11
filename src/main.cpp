@@ -181,10 +181,12 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 	}
 	raft_aabb.expand(MM2INT(2.0));
 	raft_outline = raft_aabb.toPolygons().offset(MM2INT(2.0), ClipperLib::jtRound);
+    gcode.setFlowModifier(1.05);
 	gcode.printRaft(raft_outline);
 
 	gcode.switchExtruder(0);
 //     gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
+    gcode.setFlowModifier(flow_modifier);
 	gcode.setNominalSpeed(nominal_print_speed);
 	
 	gcode.printBrim(raft_aabb.toPolygons(), 1);
@@ -225,12 +227,14 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	Polygons raft_outline = polys.offset(MM2INT(6.0), ClipperLib::jtRound).offset(MM2INT(-3.0), ClipperLib::jtRound);
+    gcode.setFlowModifier(1.05);
 	gcode.printRaft(raft_outline);
 	gcode.retract();
 
 	gcode.switchExtruder(0);
 //     gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
 	gcode.setNominalSpeed(nominal_print_speed);
+    gcode.setFlowModifier(flow_modifier);
 	gcode.setBackPressureCompensation(kappa);
 	gcode.comment("kappa: %f", kappa);
 	gcode.retract();
