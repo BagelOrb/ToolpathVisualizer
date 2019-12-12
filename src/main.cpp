@@ -45,8 +45,8 @@ namespace visualizer
 static TCLAP::CmdLine gCmdLine(" Analyse toolpaths and generate single layer gcode ", ' ', "0.1");
 
 
-static TCLAP::ValueArg<std::string> cmd__input_outline_filename("p", "polygon", "Input file for polygon", false /* required? */, "-", "path to file");
-static TCLAP::ValueArg<std::string> cmd__input_segment_file("t", "toolpaths", "Input file for toolpaths", false /* required? */, "-", "path to file");
+static TCLAP::ValueArg<std::string> cmd__input_outline_filename("p", "polygon", "Input file for polygon", false /* required? */, "", "path to file");
+static TCLAP::ValueArg<std::string> cmd__input_segment_file("t", "toolpaths", "Input file for toolpaths", false /* required? */, "", "path to file");
 static TCLAP::ValueArg<std::string> cmd__output_prefix("o", "output", "Output file name prefix", false /* required? */, "TEST", "path to file");
 
 static TCLAP::SwitchArg cmd__generate_gcodes("g", "gcode", "Generate gcode", false);
@@ -65,7 +65,7 @@ static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion 
 
 std::string input_outline_filename = "";
 std::string output_prefix = "";
-std::string input_segment_file = "";
+std::string input_segment_files = "";
 float input_outline_scaling = 1.0;
 
 bool generate_gcode = true;
@@ -116,7 +116,7 @@ bool readCommandLine(int argc, char **argv)
 
         input_outline_filename = cmd__input_outline_filename.getValue();
         output_prefix = cmd__output_prefix.getValue();
-        input_segment_file = cmd__input_segment_file.getValue();
+        input_segment_files = cmd__input_segment_file.getValue();
 
         generate_gcode = cmd__generate_gcodes.getValue();
         generate_raft = cmd__generate_raft.getValue();
@@ -371,29 +371,142 @@ void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_pe
 
 void test()
 {
-	bool is_svg = input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg";
-    Polygons polys = is_svg? SVGloader::load(input_outline_filename) : TXTloader::load(input_outline_filename);
-    polys.applyMatrix(PointMatrix::scale(input_outline_scaling));
     
-    
-    PathReader reader;
-	if (reader.open(input_segment_file))
-	{
-		std::cerr << "Error opening " << input_segment_file << "!\n";
-		std::exit(-1);
-	}
     std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
     std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
-	if (reader.read(result_polygons_per_index, result_polylines_per_index))
-	{
-		std::cerr << "Error reading " << input_segment_file << "!\n";
-		std::exit(-1);
-	}
+    
+    AABB aabb;
+    std::string delimiter = ";";
+    input_segment_files = input_segment_files + delimiter;
+    size_t last = 0;
+    size_t next = 0;
+    bool first = true;
+    while ((next = input_segment_files.find(delimiter, last)) != std::string::npos)
+    {
+        std::string input_segment_file = input_segment_files.substr(last, next-last);
+        last = next + 1;
+        
+        if (input_segment_file.compare("") == 0) continue;
 
-	if (do_varWidthTest) varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
+        PathReader reader;
+        std::cerr << "reading " << input_segment_file << '\n';
+        if (reader.open(input_segment_file))
+        {
+            std::cerr << "Error opening " << input_segment_file << "!\n";
+            std::exit(-1);
+        }
+        std::vector<std::list<ExtrusionLine>> result_polylines_per_index_here;
+        std::vector<std::list<ExtrusionLine>> result_polygons_per_index_here;
+        if (reader.read(result_polygons_per_index_here, result_polylines_per_index_here))
+        {
+            std::cerr << "Error reading " << input_segment_file << "!\n";
+            std::exit(-1);
+        }
+        
+        AABB aabb_here;
+        for (const std::vector<std::list<ExtrusionLine>>& rppi : {result_polygons_per_index_here, result_polylines_per_index_here})
+            for (const std::list<ExtrusionLine>& p : rppi)
+                for (const ExtrusionLine& l : p)
+                    for (const ExtrusionJunction& j : l.junctions)
+                    {
+                        aabb_here.include(j.p);
+                        assert(j.w < MM2INT(2.0));
+                    }
+        if (first)
+        {
+            aabb = aabb_here;
+            result_polygons_per_index = result_polygons_per_index_here;
+            result_polylines_per_index = result_polylines_per_index_here;
+        }
+        else
+        {
+            Point offset = Point(aabb.min.X - aabb_here.min.X, aabb.max.Y - aabb_here.min.Y + MM2INT(2.0));
+            for (bool closed : {true, false})
+            {
+                std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index_here : result_polylines_per_index_here;
+                for (std::list<ExtrusionLine>& p : rppi)
+                    for (ExtrusionLine& l : p)
+                        for (ExtrusionJunction& j : l.junctions)
+                        {
+                            j.p += offset;
+                        }
+            }
+            aabb_here.min += offset;
+            aabb_here.max += offset;
+            aabb.include(aabb_here);
+            result_polygons_per_index.insert(result_polygons_per_index.end(), result_polygons_per_index_here.begin(), result_polygons_per_index_here.end());
+            result_polylines_per_index.insert(result_polylines_per_index.end(), result_polylines_per_index_here.begin(), result_polylines_per_index_here.end());
+        }
+        first = false;
+    }
+
+    for (bool closed : {true, false})
+    {
+        std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index : result_polylines_per_index;
+        for (std::list<ExtrusionLine>& p : rppi)
+            for (ExtrusionLine& l : p)
+                for (ExtrusionJunction& j : l.junctions)
+                {
+                    j.p -= aabb.getMiddle();
+                }
+    }
+    
+    
+    for (bool closed : {true, false})
+    {
+        std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index : result_polylines_per_index;
+        for (const std::list<ExtrusionLine>& p : rppi)
+            for (const ExtrusionLine& l : p)
+                for (const ExtrusionJunction& j : l.junctions)
+                {
+                    assert(j.w < MM2INT(2.0));
+                }
+    }
+    
+    Polygons polys;
+    if (input_outline_filename.compare("") == 0)
+    {
+        for (auto& p : result_polygons_per_index)
+            for (ExtrusionLine& l : p)
+            {
+                ExtrusionJunction* last = &l.junctions.back();
+                for (ExtrusionJunction& here : l.junctions)
+                {
+                    polys.add(ExtrusionSegment(*last, here, false).toPolygons(false));
+                    last = &here;
+                }
+            }
+        for (auto& p : result_polylines_per_index)
+            for (ExtrusionLine& l : p)
+            {
+                ExtrusionJunction* last = &l.junctions.front();
+                for (auto it = ++l.junctions.begin(); it != l.junctions.end(); ++it)
+                {
+                    polys.add(ExtrusionSegment(*last, *it, false).toPolygons(false));
+                    last = &*it;
+                }
+            }
+        polys = polys.unionPolygons();
+        polys = polys.offset(MM2INT(0.3)).offset(MM2INT(-0.3));
+    }
+    else
+    {
+        if (input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg")
+        {
+            polys = SVGloader::load(input_outline_filename);
+        }
+        else
+        {
+            polys = TXTloader::load(input_outline_filename);
+        }
+        polys.applyMatrix(PointMatrix::scale(input_outline_scaling));
+    }
+    
+
+    if (do_varWidthTest) varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
     if (do_widthLimitsTest) widthLimitsTest(result_polylines_per_index, result_polygons_per_index, polys);
-	
-	if (generate_gcode)
+    
+    if (generate_gcode)
     {
         if (generate_grid)
         {
