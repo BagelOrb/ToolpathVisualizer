@@ -95,7 +95,7 @@ double ExtrusionSegment::getArea(bool reduced) const
 	coord_t d = sqrt(d2);
 	coord_t dr = s - r;
 	coord_t l2 = d2 - dr * dr;
-	coord_t l = sqrt(l2);
+	coord_t l = std::max(0.0, sqrt(l2));
 	coord_t trapezoid_area = l * (r + s) / 2;
 	double a = asin(sqrt(INT2MM2(l2) / INT2MM2(d2)));
 	double b = M_PI - a;

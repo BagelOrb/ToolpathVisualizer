@@ -633,7 +633,9 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
     {
         case type_UM3:
         default:
-            last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
+            double area = INT2MM2(ExtrusionSegment(from, to, false).getArea(true));
+            assert(area >= 0.0);
+            last_E += area * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
 //             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
 			file << std::setprecision(3);
             file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y);
