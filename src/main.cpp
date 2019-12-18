@@ -441,7 +441,7 @@ void test()
         }
         else
         {
-            Point offset = Point(aabb.min.X - aabb_here.min.X, aabb.max.Y - aabb_here.min.Y + MM2INT(2.0));
+            Point offset = Point(aabb.min.X - aabb_here.min.X, aabb.max.Y - aabb_here.min.Y + MM2INT(5.0));
             for (bool closed : {true, false})
             {
                 std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index_here : result_polylines_per_index_here;
