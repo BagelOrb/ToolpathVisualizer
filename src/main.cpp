@@ -55,6 +55,7 @@ static TCLAP::SwitchArg cmd__generate_grid("", "grid", "Repeat gcode in grid wit
 static TCLAP::SwitchArg cmd__do_varWidthTest("", "varWidthTest", "generate width variation test", false);
 static TCLAP::SwitchArg cmd__do_widthLimitsTest("", "widthLimitsTest", "generate width limits test spiral", false);
 
+static TCLAP::SwitchArg cmd__convert_svg("", "convert", "convert input svg to txt", false);
 
 static TCLAP::SwitchArg cmd__analyse("a", "analyse", "Analyse output paths", false);
 static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon scaler", false /* required? */, 1.0, "floating number");
@@ -74,6 +75,8 @@ bool generate_raft = false;
 bool generate_grid = false;
 bool do_varWidthTest = false;
 bool do_widthLimitsTest = false;
+
+bool convert_svg = false;
 
 bool perform_analysis = false;
 
@@ -106,6 +109,8 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__generate_grid);
         gCmdLine.add(cmd__do_varWidthTest);
         gCmdLine.add(cmd__do_widthLimitsTest);
+
+        gCmdLine.add(cmd__convert_svg);
         
         
         gCmdLine.add(cmd__analyse);
@@ -127,6 +132,8 @@ bool readCommandLine(int argc, char **argv)
         generate_grid = cmd__generate_grid.getValue();
         do_varWidthTest = cmd__do_varWidthTest.getValue();
         do_widthLimitsTest = cmd__do_widthLimitsTest.getValue();
+        
+        convert_svg = cmd__convert_svg.getValue();
         
         perform_analysis = cmd__analyse.getValue();
         
@@ -150,15 +157,16 @@ bool readCommandLine(int argc, char **argv)
 }
 
 
-void convertSvg2SmoothPathPlanningFormat(const Polygons polys)
+void convertSvg2SmoothPathPlanningFormat(const Polygons& polys, std::string base_filename)
 {
-	std::cerr << "0.3\n";
-	std::cerr << "1.0\n";
+    std::ofstream file(base_filename + ".txt");
+	file << "0.3\n";
+	file << "0.7\n";
 	for (ConstPolygonRef poly : polys)
 	{
-		std::cerr << poly.size() << '\n';
+		file << poly.size() << '\n';
 		for (Point p : poly)
-			std::cerr << INT2MM(p.X) << " " << INT2MM(p.Y) << '\n';
+			file << INT2MM(p.X) << " " << INT2MM(p.Y) << '\n';
 	}
 }
 
@@ -500,6 +508,10 @@ void test()
         if (input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg")
         {
             polys = SVGloader::load(input_outline_filename);
+            if (convert_svg)
+            {
+                convertSvg2SmoothPathPlanningFormat(polys, input_outline_filename.substr(0, input_outline_filename.find_last_of(".")));
+            }
         }
         else
         {
