@@ -121,9 +121,6 @@ GcodeWriter::~GcodeWriter()
 {
     retract();
     file << "G0 F" << 60.0 * travel_speed << " Z" << (INT2MM(cur_z) + 1.0) << " ; Z hop\n";
-    
-    
-	std::cout << "Total naive print time: " << total_naive_print_time << "\n";
 
 
     file << "G0 F" << 60.0 * travel_speed << " X" << 20 << " Y" << 20 << " Z" << " ; start location\n";
@@ -582,7 +579,6 @@ void GcodeWriter::move(Point p)
             file << "G0 F" << 60.0 * travel_speed << " X" << INT2MM(p.X) << " Y" << INT2MM(p.Y) << "\n";
             break;
     }
-	total_naive_print_time += vSizeMM(cur_pos - p) / travel_speed;
     cur_pos = p;
     marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), travel_speed);
 }
@@ -649,7 +645,6 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
             break;
     }
     cur_pos = to.p;
-	total_naive_print_time += vSizeMM(to.p - from.p) / print_speed;
     marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), print_speed);
 }
 
