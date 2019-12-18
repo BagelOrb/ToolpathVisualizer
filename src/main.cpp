@@ -242,6 +242,8 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
 	Polygons raft_outline = polys.offset(MM2INT(6.0), ClipperLib::jtRound).offset(MM2INT(-3.0), ClipperLib::jtRound);
+    
+    gcode.setTranslation(-AABB(polys).getMiddle());
     gcode.setFlowModifier(1.05);
 	gcode.printRaft(raft_outline);
 	gcode.retract();
@@ -276,6 +278,7 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
     ss << "visualization/" << output_prefix << ".gcode";
 	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
 	
+    gcode.setTranslation(-AABB(polys).getMiddle());
 	gcode.switchExtruder(0);
 	gcode.setNominalSpeed(nominal_print_speed);
 	gcode.setBackPressureCompensation(kappa);
@@ -458,28 +461,6 @@ void test()
         first = false;
     }
 
-    for (bool closed : {true, false})
-    {
-        std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index : result_polylines_per_index;
-        for (std::list<ExtrusionLine>& p : rppi)
-            for (ExtrusionLine& l : p)
-                for (ExtrusionJunction& j : l.junctions)
-                {
-                    j.p -= aabb.getMiddle();
-                }
-    }
-    
-    
-    for (bool closed : {true, false})
-    {
-        std::vector<std::list<ExtrusionLine>>& rppi = closed? result_polygons_per_index : result_polylines_per_index;
-        for (const std::list<ExtrusionLine>& p : rppi)
-            for (const ExtrusionLine& l : p)
-                for (const ExtrusionJunction& j : l.junctions)
-                {
-                    assert(j.w < MM2INT(2.0));
-                }
-    }
     
     Polygons polys;
     if (input_outline_filename.compare("") == 0)
