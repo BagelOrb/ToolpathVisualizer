@@ -23,6 +23,7 @@ public:
     , output_prefix(output_prefix)
     , input(input)
     {
+        input = input.processEvenOdd();
         total_target_area = INT2MM2(input.area());
         total_target_area_length = INT2MM(input.polygonLength());
     }
