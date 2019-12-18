@@ -124,8 +124,11 @@ void Statistics::saveResultsCSV()
         std::ostringstream ss;
         ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
-        csv << "processing_time,overfill_area,double_overfill_area,total_underfill_area,total_target_area,total_target_area_length,vert_count,test_type,output_prefix,closed_toolpaths,open_toolpaths\n";
-        csv << processing_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << ","
+        csv << "print_time,overfill_area,double_overfill_area,total_underfill_area,"
+            << "total_target_area,total_target_area_length,vert_count,"
+            << "test_type,output_prefix,"
+            << "closed_toolpaths,open_toolpaths\n";
+        csv << print_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << ","
             << total_target_area << "," << total_target_area_length << "," << vert_count << ","
             << test_type << "," << output_prefix << ","
             << closed_toolpaths << "," << open_toolpaths << '\n';

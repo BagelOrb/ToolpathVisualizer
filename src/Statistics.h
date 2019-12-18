@@ -17,8 +17,8 @@ namespace visualizer
 class Statistics
 {
 public:
-    Statistics(std::string test_type, std::string output_prefix, Polygons& input, double processing_time)
-    : processing_time(processing_time)
+    Statistics(std::string test_type, std::string output_prefix, Polygons& input, double print_time)
+    : print_time(print_time)
     , test_type(test_type)
     , output_prefix(output_prefix)
     , input(input)
@@ -30,7 +30,7 @@ public:
     void analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index);
     void visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, bool output_toolpaths = false, bool output_widths = true, bool include_legend = false, bool output_accuracy = true, bool exaggerate_widths = false, bool rounded_visualization = true);
     void saveResultsCSV();
-    double processing_time = -1;
+    double print_time = -1;
     double overfill_area = -1;
     double double_overfill_area = -1;
     double total_underfill_area = -1;

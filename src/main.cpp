@@ -174,7 +174,7 @@ void convertSvg2SmoothPathPlanningFormat(const Polygons& polys, std::string base
 	}
 }
 
-void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+Duration squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 	Point aabb_size = aabb.max - aabb.min;
@@ -230,10 +230,10 @@ void squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylin
 		back_pressure_compensation += 0.1;
 	}
     
-    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
+    return gcode.marlin_estimates.calculate();
 }
 
-void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix, bool brim = true)
+Duration raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix, bool brim = true)
 {
 	AABB aabb(polys);
 
@@ -267,10 +267,10 @@ void raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_
 	gcode.comment("TYPE:WALL-OUTER");
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
     
-    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
+    return gcode.marlin_estimates.calculate();
 }
 
-void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+Duration print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 
@@ -292,7 +292,7 @@ void print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_in
 	gcode.comment("TYPE:WALL-OUTER");
 	gcode.print(result_polygons_per_index, result_polylines_per_index, false, false);
     
-    std::cerr << "Print time: " << gcode.marlin_estimates.calculate() << "\n";
+    return gcode.marlin_estimates.calculate();
 }
 
 void varWidthTest(std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, Polygons & polys)
@@ -509,20 +509,22 @@ void test()
     if (do_varWidthTest) varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
     if (do_widthLimitsTest) widthLimitsTest(result_polylines_per_index, result_polygons_per_index, polys);
     
+    Duration print_time = -1;
     if (generate_gcode)
     {
         if (generate_grid)
         {
-            squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time = squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
         else if (generate_raft)
         {
-            raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time = raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
         else
         {
-            print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time = print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
+        std::cerr << "Print time (Marlin estimate): " << print_time << '\n';
     }
 
     if (perform_analysis)
@@ -537,7 +539,7 @@ void test()
             std::exit(-1);
         }
         std::cout << "Computing statistics...\n";
-        Statistics stats("external", output_prefix, polys, -1.0);
+        Statistics stats("external", output_prefix, polys, print_time);
         stats.analyse(result_polygons_per_index, result_polylines_per_index);
         if (visualize_analysis)
         {
