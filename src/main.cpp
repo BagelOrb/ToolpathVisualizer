@@ -58,6 +58,7 @@ static TCLAP::SwitchArg cmd__do_widthLimitsTest("", "widthLimitsTest", "generate
 static TCLAP::SwitchArg cmd__convert_svg("", "convert", "convert input svg to txt", false);
 
 static TCLAP::SwitchArg cmd__analyse("a", "analyse", "Analyse output paths", false);
+static TCLAP::SwitchArg cmd__visualize("", "visualize", "Visualize widths and accuracy", false);
 static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon scaler", false /* required? */, 1.0, "floating number");
 static TCLAP::SwitchArg cmd__process_even_toolpaths_only ("", "evenonly", "Only process even toolpaths", false);
 static TCLAP::SwitchArg cmd__simplify_input_toolpaths("", "simplify", "Simplify input toolpaths to prevent firmware flooding", false);
@@ -79,6 +80,7 @@ bool do_widthLimitsTest = false;
 bool convert_svg = false;
 
 bool perform_analysis = false;
+bool visualize_analysis = false;
 
 bool process_even_toolpaths_only = false;
 bool simplify_input_toolpaths = false;
@@ -114,6 +116,7 @@ bool readCommandLine(int argc, char **argv)
         
         
         gCmdLine.add(cmd__analyse);
+        gCmdLine.add(cmd__visualize);
         gCmdLine.add(cmd__scale_amount);
         gCmdLine.add( cmd__process_even_toolpaths_only );
         gCmdLine.add(cmd__simplify_input_toolpaths);
@@ -136,6 +139,7 @@ bool readCommandLine(int argc, char **argv)
         convert_svg = cmd__convert_svg.getValue();
         
         perform_analysis = cmd__analyse.getValue();
+        visualize_analysis = cmd__visualize.getValue();
         
         
         input_outline_scaling = cmd__scale_amount.getValue();
@@ -545,7 +549,10 @@ void test()
         std::cout << "Computing statistics...\n";
         Statistics stats("external", output_prefix, polys, -1.0);
         stats.analyse(result_polygons_per_index, result_polylines_per_index);
-        stats.visualize(MM2INT(0.3), MM2INT(0.9));
+        if (visualize_analysis)
+        {
+            stats.visualize(MM2INT(0.3), MM2INT(0.7));
+        }
         stats.saveResultsCSV();
     }
 }
