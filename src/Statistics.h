@@ -30,6 +30,7 @@ public:
     void analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index);
     void visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, bool output_toolpaths = false, bool output_widths = true, bool include_legend = false, bool output_accuracy = true, bool exaggerate_widths = false, bool rounded_visualization = true);
     void saveResultsCSV();
+    void saveSegmentsCSV();
     double print_time = -1;
     double overfill_area = -1;
     double double_overfill_area = -1;

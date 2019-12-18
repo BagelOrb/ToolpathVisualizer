@@ -59,6 +59,7 @@ static TCLAP::SwitchArg cmd__convert_svg("", "convert", "convert input svg to tx
 
 static TCLAP::SwitchArg cmd__analyse("a", "analyse", "Analyse output paths", false);
 static TCLAP::SwitchArg cmd__visualize("", "visualize", "Visualize widths and accuracy", false);
+static TCLAP::SwitchArg cmd__output_segments_csv("", "segments", "Convert the input toolpaths to a segments.csv file format (in printing order)", false);
 static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon scaler", false /* required? */, 1.0, "floating number");
 static TCLAP::SwitchArg cmd__process_even_toolpaths_only ("", "evenonly", "Only process even toolpaths", false);
 static TCLAP::SwitchArg cmd__simplify_input_toolpaths("", "simplify", "Simplify input toolpaths to prevent firmware flooding", false);
@@ -81,6 +82,7 @@ bool convert_svg = false;
 
 bool perform_analysis = false;
 bool visualize_analysis = false;
+bool output_segments_csv = false;
 
 bool process_even_toolpaths_only = false;
 bool simplify_input_toolpaths = false;
@@ -117,6 +119,7 @@ bool readCommandLine(int argc, char **argv)
         
         gCmdLine.add(cmd__analyse);
         gCmdLine.add(cmd__visualize);
+        gCmdLine.add(cmd__output_segments_csv);
         gCmdLine.add(cmd__scale_amount);
         gCmdLine.add( cmd__process_even_toolpaths_only );
         gCmdLine.add(cmd__simplify_input_toolpaths);
@@ -140,6 +143,7 @@ bool readCommandLine(int argc, char **argv)
         
         perform_analysis = cmd__analyse.getValue();
         visualize_analysis = cmd__visualize.getValue();
+        output_segments_csv = cmd__output_segments_csv.getValue();
         
         
         input_outline_scaling = cmd__scale_amount.getValue();
@@ -566,6 +570,10 @@ void test()
             stats.visualize(MM2INT(0.3), MM2INT(0.7));
         }
         stats.saveResultsCSV();
+        if (output_segments_csv)
+        {
+            stats.saveSegmentsCSV();
+        }
     }
 }
 

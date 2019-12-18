@@ -97,7 +97,7 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
 
 }
 
-void Statistics::saveResultsCSV()
+void Statistics::saveSegmentsCSV()
 {
     if ( ! all_segments.empty())
     {
@@ -116,6 +116,9 @@ void Statistics::saveResultsCSV()
         }
         csv.close();
     }
+}
+void Statistics::saveResultsCSV()
+{
     {
         coord_t vert_count = 0;
         for (ConstPolygonRef poly : input)
