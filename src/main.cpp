@@ -61,7 +61,8 @@ static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon sca
 static TCLAP::SwitchArg cmd__process_even_toolpaths_only ("", "evenonly", "Only process even toolpaths", false);
 static TCLAP::SwitchArg cmd__simplify_input_toolpaths("", "simplify", "Simplify input toolpaths to prevent firmware flooding", false);
 
-static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion flow scaler", false /* required? */, 1.0, "floating number");
+static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion flow scaler", false /* required? */, 1.0, "ratio");
+static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferred bead width", false /* required? */, 0.4, "mm");
 
 std::string input_outline_filename = "";
 std::string output_prefix = "";
@@ -90,6 +91,8 @@ float nominal_raft_speed = 50.0;
 
 coord_t unretracted_dist = MM2INT(1.0);
 
+coord_t preferred_bead_width = MM2INT(0.4);
+
 bool readCommandLine(int argc, char **argv)
 {
     try {
@@ -111,6 +114,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__simplify_input_toolpaths);
 
         gCmdLine.add(cmd__flow_modifier);
+        gCmdLine.add(cmd__preferred_bead_width);
 
         gCmdLine.parse(argc, argv);
 
@@ -133,6 +137,7 @@ bool readCommandLine(int argc, char **argv)
         simplify_input_toolpaths = cmd__simplify_input_toolpaths.getValue();
         
         flow_modifier = cmd__flow_modifier.getValue();
+        preferred_bead_width = MM2INT(cmd__preferred_bead_width.getValue());
         
         return false;
     }

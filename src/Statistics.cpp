@@ -10,6 +10,8 @@
 
 namespace visualizer
 {
+    
+extern coord_t preferred_bead_width;
 
 void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index)
 {
@@ -230,7 +232,7 @@ void Statistics::visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, boo
         SVG svg(ss.str(), aabb);
 //         svg.writeAreas(input, SVG::Color::GRAY, SVG::Color::NONE, 2);
 
-		coord_t normal_nozzle_size = MM2INT(0.4);
+		coord_t normal_nozzle_size = preferred_bead_width;
         coord_t min_dev = normal_nozzle_size - min_nozzle_size;
         coord_t max_dev = max_nozzle_size - normal_nozzle_size;
         coord_t min_w = 30;
