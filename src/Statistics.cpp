@@ -86,6 +86,13 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
         poly.emplace_back(segment.s.to.p);
     }
 
+    closed_toolpaths = 0;
+    for (const auto& polys : polygons_per_index)
+        closed_toolpaths += polys.size();
+    open_toolpaths = 0;
+    for (const auto& lines : polylines_per_index)
+        open_toolpaths += lines.size();
+
 }
 
 void Statistics::saveResultsCSV()
@@ -115,10 +122,11 @@ void Statistics::saveResultsCSV()
         std::ostringstream ss;
         ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
-        csv << "processing_time,overfill_area,double_overfill_area,total_underfill_area,total_target_area,total_target_area_length,vert_count,test_type,output_prefix\n";
+        csv << "processing_time,overfill_area,double_overfill_area,total_underfill_area,total_target_area,total_target_area_length,vert_count,test_type,output_prefix,closed_toolpaths,open_toolpaths\n";
         csv << processing_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << ","
             << total_target_area << "," << total_target_area_length << "," << vert_count << ","
-            << test_type << "," << output_prefix << '\n';
+            << test_type << "," << output_prefix << ","
+            << closed_toolpaths << "," << open_toolpaths << '\n';
         csv.close();
     }
 }

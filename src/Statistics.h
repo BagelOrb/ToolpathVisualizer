@@ -35,6 +35,8 @@ public:
     double total_underfill_area = -1;
     double total_target_area = -1;
     double total_target_area_length = -1;
+    int closed_toolpaths = -1;
+    int open_toolpaths = -1;
 private:
     struct Segment
     {
