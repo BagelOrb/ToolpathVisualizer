@@ -419,9 +419,16 @@ void GcodeWriter::printUnordered(const std::vector<std::list<ExtrusionLine>>& po
                 recreated.emplace_back();
                 PolygonRef recreated_poly = recreated.back();
                 for (auto j : poly.junctions)
+                {
                     recreated_poly.add(j.p);
+                    assert(j.w < MM2INT(2.0));
+                }
             }
     }
+    for (Path& p : paths)
+        for (ExtrusionJunction& j : p.junctions)
+            assert(j.w < MM2INT(10.0));
+            
     OrderOptimizer order_optimizer(cur_pos);
     for (coord_t path_idx = 0; path_idx < paths.size(); path_idx++)
     {
@@ -622,20 +629,18 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 {
     coord_t w = (from.w + to.w) / 2;
     double print_speed = this->print_speed;
-	double slippage_compensation_factor = 1.0;
-	if (equalize_flow)
-	{
-		double back_pressure = INT2MM(w - 400) / 0.4;
-		print_speed = (flow - back_pressure_compensation * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
-		print_speed = std::max(1.0, print_speed);
-	}
+    double slippage_compensation_factor = 1.0;
+    if (equalize_flow)
+    {
+        double back_pressure = INT2MM(w - 400) / 0.4;
+        print_speed = (flow - back_pressure_compensation * back_pressure) / INT2MM(layer_thickness) / INT2MM(w);
+        print_speed = std::max(1.0, print_speed);
+    }
     switch(type)
     {
         case type_UM3:
         default:
-            double area = INT2MM2(ExtrusionSegment(from, to, false).getArea(true));
-            assert(area >= 0.0);
-            last_E += area * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
+            last_E += INT2MM2(ExtrusionSegment(from, to, false).getArea(true)) * INT2MM(layer_thickness) * getExtrusionFilamentMmPerCubicMm();
 //             last_E += getExtrusionFilamentMmPerMmMove(w) * INT2MM(vSize(to.p - from.p));
 			file << std::setprecision(3);
             file << "G1 F" << 60.0 * print_speed << " X" << INT2MM(to.p.X) << " Y" << INT2MM(to.p.Y);

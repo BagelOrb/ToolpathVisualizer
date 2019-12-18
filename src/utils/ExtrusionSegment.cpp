@@ -106,8 +106,7 @@ double ExtrusionSegment::getArea(bool reduced) const
 	coord_t start_area = .5 * b * r2;
 	coord_t end_area = reduced? - .5 * b * s2 : .5 * a * s2;
 	
-	coord_t total_area = (trapezoid_area + end_area + start_area) * 2;
-	
+	coord_t total_area = std::max(coord_t(0), (trapezoid_area + end_area + start_area) * 2);
 // 	assert(double(std::abs(total_area - toPolygons(reduced).area())) / double(total_area) < 0.01);
 	return total_area;
 }
