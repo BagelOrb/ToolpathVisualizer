@@ -390,12 +390,13 @@ void widthLimitsTest(std::vector<std::list<ExtrusionLine>> & result_polylines_pe
 	polys = polylines.offsetPolyLine(gap).approxConvexHull(maxW - gap);
 }
 
-void test()
+/*!
+ * Load toolpaths
+ * place them below each other if multiple toolpath files are given
+ */
+void loadToolpaths(std::vector<std::list<ExtrusionLine>>& result_polylines_per_index, std::vector<std::list<ExtrusionLine>>& result_polygons_per_index)
 {
-    
-    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
-    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
-    
+
     AABB aabb;
     std::string delimiter = ";";
     input_segment_files = input_segment_files + delimiter;
@@ -461,10 +462,21 @@ void test()
         first = false;
     }
 
+}
+void test()
+{
+    
+    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
+    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
+    loadToolpaths(result_polylines_per_index, result_polygons_per_index);
+    if (result_polygons_per_index.empty() && result_polylines_per_index.empty())
+    {
+        std::cerr << "WARNING: couldn't load any toolpaths!\n";
+    }
     
     Polygons polys;
     if (input_outline_filename.compare("") == 0)
-    {
+    { // create polygons from input toolpaths
         for (auto& p : result_polygons_per_index)
             for (ExtrusionLine& l : p)
             {
