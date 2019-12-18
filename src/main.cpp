@@ -463,34 +463,26 @@ void loadToolpaths(std::vector<std::list<ExtrusionLine>>& result_polylines_per_i
     }
 
 }
-void test()
+
+Polygons loadOutlines(const std::vector<std::list<ExtrusionLine>>& result_polylines_per_index, const std::vector<std::list<ExtrusionLine>>& result_polygons_per_index)
 {
-    
-    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
-    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
-    loadToolpaths(result_polylines_per_index, result_polygons_per_index);
-    if (result_polygons_per_index.empty() && result_polylines_per_index.empty())
-    {
-        std::cerr << "WARNING: couldn't load any toolpaths!\n";
-    }
-    
-    Polygons polys;
     if (input_outline_filename.compare("") == 0)
     { // create polygons from input toolpaths
-        for (auto& p : result_polygons_per_index)
-            for (ExtrusionLine& l : p)
+        Polygons polys;
+        for (const auto& p : result_polygons_per_index)
+            for (const ExtrusionLine& l : p)
             {
-                ExtrusionJunction* last = &l.junctions.back();
-                for (ExtrusionJunction& here : l.junctions)
+                const ExtrusionJunction* last = &l.junctions.back();
+                for (const ExtrusionJunction& here : l.junctions)
                 {
                     polys.add(ExtrusionSegment(*last, here, false).toPolygons(false));
                     last = &here;
                 }
             }
-        for (auto& p : result_polylines_per_index)
-            for (ExtrusionLine& l : p)
+        for (const auto& p : result_polylines_per_index)
+            for (const ExtrusionLine& l : p)
             {
-                ExtrusionJunction* last = &l.junctions.front();
+                const ExtrusionJunction* last = &l.junctions.front();
                 for (auto it = ++l.junctions.begin(); it != l.junctions.end(); ++it)
                 {
                     polys.add(ExtrusionSegment(*last, *it, false).toPolygons(false));
@@ -499,9 +491,11 @@ void test()
             }
         polys = polys.unionPolygons();
         polys = polys.offset(MM2INT(0.3)).offset(MM2INT(-0.3));
+        return polys;
     }
     else
     {
+        Polygons polys;
         if (input_outline_filename.substr(input_outline_filename.find_last_of(".") + 1) == "svg")
         {
             polys = SVGloader::load(input_outline_filename);
@@ -515,7 +509,21 @@ void test()
             polys = TXTloader::load(input_outline_filename);
         }
         polys.applyMatrix(PointMatrix::scale(input_outline_scaling));
+        return polys;
     }
+}
+void test()
+{
+    
+    std::vector<std::list<ExtrusionLine>> result_polylines_per_index;
+    std::vector<std::list<ExtrusionLine>> result_polygons_per_index;
+    loadToolpaths(result_polylines_per_index, result_polygons_per_index);
+    if (result_polygons_per_index.empty() && result_polylines_per_index.empty())
+    {
+        std::cerr << "WARNING: couldn't load any toolpaths!\n";
+    }
+    
+    Polygons polys = loadOutlines(result_polylines_per_index, result_polygons_per_index);
     
 
     if (do_varWidthTest) varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
