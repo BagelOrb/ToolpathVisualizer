@@ -249,7 +249,7 @@ Duration raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polyli
 	gcode.retract();
 
 	gcode.switchExtruder(0);
-//     gcode.marlin_estimates.reset(); gcode.total_naive_print_time = 0;
+    gcode.marlin_estimates.reset();
 	gcode.setNominalSpeed(nominal_print_speed);
     gcode.setFlowModifier(flow_modifier);
 	gcode.setBackPressureCompensation(kappa);
