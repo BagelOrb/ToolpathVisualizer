@@ -527,6 +527,15 @@ void test()
 
     if (perform_analysis)
     {
+        
+        std::ostringstream ss;
+        ss << "visualization/" << output_prefix << "_" << "external" << "_results.csv";
+        std::ifstream file(ss.str().c_str());
+        if (file.good())
+        {
+            logAlways("Test already has results saved\n");
+            std::exit(-1);
+        }
         std::cout << "Computing statistics...\n";
         Statistics stats("external", output_prefix, polys, -1.0);
         stats.analyse(result_polygons_per_index, result_polylines_per_index);
