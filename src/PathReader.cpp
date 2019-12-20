@@ -12,6 +12,7 @@ namespace visualizer
 
 extern bool process_even_toolpaths_only;
 extern bool simplify_input_toolpaths;
+extern coord_t simplify_min_length_3D;
 
 int PathReader::read(std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, std::vector<std::list<ExtrusionLine>> & result_polylines_per_index)
 {
@@ -131,7 +132,8 @@ void PathReader::simplify(std::list<ExtrusionJunction>& line, bool closed) const
 
 bool PathReader::shouldRemove(ExtrusionJunction & prev, ExtrusionJunction & here, ExtrusionJunction & next) const
 {
-	if ((next.toPoint3() - prev.toPoint3()).vSize2() > min_length * min_length) return false;
+	if ((next.toPoint3() - prev.toPoint3()).vSize2() > simplify_min_length_3D * simplify_min_length_3D ) return false;
+	if (vSize2(here.p - prev.p) + vSize2(next.p - here.p) < 10 * 10 ) return true;
 	if (LinearAlg2D::getDist2FromLineSegment(prev.p, here.p, next.p) > max_deviation * max_deviation) return false;
 	Point a = prev.p;
 	Point b = here.p;

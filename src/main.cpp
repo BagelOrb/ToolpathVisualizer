@@ -63,6 +63,7 @@ static TCLAP::SwitchArg cmd__output_segments_csv("", "segments", "Convert the in
 static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon scaler", false /* required? */, 1.0, "floating number");
 static TCLAP::SwitchArg cmd__process_even_toolpaths_only ("", "evenonly", "Only process even toolpaths", false);
 static TCLAP::SwitchArg cmd__simplify_input_toolpaths("", "simplify", "Simplify input toolpaths to prevent firmware flooding", false);
+static TCLAP::ValueArg<double> cmd__simplification("", "simplification", "Simplify input toolpaths to prevent firmware flooding. minimal segment length in 3D: x, y, width.", false, 0.3, "mm");
 
 static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion flow scaler", false /* required? */, 1.0, "ratio");
 static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferred bead width", false /* required? */, 0.4, "mm");
@@ -86,6 +87,7 @@ bool output_segments_csv = false;
 
 bool process_even_toolpaths_only = false;
 bool simplify_input_toolpaths = false;
+coord_t simplify_min_length_3D = 0;
 
 float flow_modifier = 0.9;
 
@@ -123,6 +125,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__scale_amount);
         gCmdLine.add( cmd__process_even_toolpaths_only );
         gCmdLine.add(cmd__simplify_input_toolpaths);
+        gCmdLine.add(cmd__simplification);
 
         gCmdLine.add(cmd__flow_modifier);
         gCmdLine.add(cmd__preferred_bead_width);
@@ -150,6 +153,7 @@ bool readCommandLine(int argc, char **argv)
         
         process_even_toolpaths_only = cmd__process_even_toolpaths_only.getValue();
         simplify_input_toolpaths = cmd__simplify_input_toolpaths.getValue();
+        simplify_min_length_3D = MM2INT(cmd__simplification.getValue());
         
         flow_modifier = cmd__flow_modifier.getValue();
         preferred_bead_width = MM2INT(cmd__preferred_bead_width.getValue());
