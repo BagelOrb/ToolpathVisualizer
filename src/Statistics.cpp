@@ -104,7 +104,7 @@ void Statistics::saveSegmentsCSV()
         std::ostringstream ss;
         ss << "visualization/" << output_prefix << "_" << test_type << "_segments.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
-        csv << "from_x,from_y,from_width,to_x,to_y,to_width,filename_base,output_prefix,inset_index\n";
+        csv << "from_x,from_y,from_width,to_x,to_y,to_width,output_prefix,inset_index\n";
         for (const Segment& segment : all_segments)
         {
             if (segment.s.from.perimeter_index != segment.s.to.perimeter_index)

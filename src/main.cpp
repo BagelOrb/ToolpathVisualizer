@@ -48,6 +48,7 @@ static TCLAP::CmdLine gCmdLine(" Analyse toolpaths and generate single layer gco
 static TCLAP::ValueArg<std::string> cmd__input_outline_filename("p", "polygon", "Input file for polygon", false /* required? */, "", "path to file");
 static TCLAP::ValueArg<std::string> cmd__input_segment_file("t", "toolpaths", "Input file for toolpaths", false /* required? */, "", "path to file");
 static TCLAP::ValueArg<std::string> cmd__output_prefix("o", "output", "Output file name prefix", false /* required? */, "TEST", "path to file");
+static TCLAP::ValueArg<std::string> cmd__test_type("", "type", "Test type name", false /* required? */, "", "string");
 
 static TCLAP::SwitchArg cmd__generate_gcodes("g", "gcode", "Generate gcode", false);
 static TCLAP::SwitchArg cmd__generate_raft("", "raft", "Generate gcode for raft", false);
@@ -71,6 +72,7 @@ static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferre
 std::string input_outline_filename = "";
 std::string output_prefix = "";
 std::string input_segment_files = "";
+std::string test_type = "";
 float input_outline_scaling = 1.0;
 
 bool generate_gcode = true;
@@ -108,6 +110,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__input_outline_filename);
         gCmdLine.add(cmd__output_prefix);
         gCmdLine.add(cmd__input_segment_file);
+        gCmdLine.add(cmd__test_type);
         
 
         gCmdLine.add(cmd__generate_gcodes);
@@ -135,6 +138,7 @@ bool readCommandLine(int argc, char **argv)
         input_outline_filename = cmd__input_outline_filename.getValue();
         output_prefix = cmd__output_prefix.getValue();
         input_segment_files = cmd__input_segment_file.getValue();
+        test_type = cmd__test_type.getValue();
 
         generate_gcode = cmd__generate_gcodes.getValue();
         generate_raft = cmd__generate_raft.getValue();
@@ -555,11 +559,11 @@ void test()
         std::cerr << "Print time (Marlin estimate): " << print_time << '\n';
     }
 
-    if (perform_analysis)
+    if (perform_analysis || visualize_analysis)
     {
         
         std::ostringstream ss;
-        ss << "visualization/" << output_prefix << "_" << "external" << "_results.csv";
+        ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ifstream file(ss.str().c_str());
         if (file.good())
         {
@@ -567,16 +571,19 @@ void test()
             std::exit(-1);
         }
         std::cout << "Computing statistics...\n";
-        Statistics stats("external", output_prefix, polys, print_time);
+        Statistics stats(test_type, output_prefix, polys, print_time);
         stats.analyse(result_polygons_per_index, result_polylines_per_index);
         if (visualize_analysis)
         {
             stats.visualize(MM2INT(0.3), MM2INT(0.7));
         }
-        stats.saveResultsCSV();
-        if (output_segments_csv)
+        if (perform_analysis)
         {
-            stats.saveSegmentsCSV();
+            stats.saveResultsCSV();
+            if (output_segments_csv)
+            {
+                stats.saveSegmentsCSV();
+            }
         }
     }
 }
