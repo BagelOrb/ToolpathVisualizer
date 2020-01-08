@@ -41,7 +41,6 @@ public:
 	int read(std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, std::vector<std::list<ExtrusionLine>> & result_polylines_per_index);
 protected:
 	std::ifstream file;
-	coord_t simplify_min_length_3D = MM2INT(0.3); // 3D length over x,y,R
 	static constexpr coord_t max_deviation = MM2INT(0.025);
 	static constexpr float max_reduce_angle = 130.0/180.0 * M_PI;
 
