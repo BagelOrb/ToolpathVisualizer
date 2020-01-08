@@ -67,6 +67,7 @@ static TCLAP::SwitchArg cmd__simplify_input_toolpaths("", "simplify", "Simplify 
 static TCLAP::ValueArg<double> cmd__simplification("", "simplification", "Simplify input toolpaths to prevent firmware flooding. minimal segment length in 3D: x, y, width.", false, 0.3, "mm");
 
 static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion flow scaler", false /* required? */, 1.0, "ratio");
+static TCLAP::ValueArg<double> cmd__backpressure_compensation("k", "kappa", "Amount of backpressure compensation", false /* required? */, 1.1, "");
 static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferred bead width", false /* required? */, 0.4, "mm");
 
 std::string input_outline_filename = "";
@@ -96,7 +97,7 @@ float flow_modifier = 0.9;
 float nominal_print_speed = 30.0;
 float travel_speed = 120.0;
 coord_t layer_thickness = MM2INT(0.1);
-float kappa = 1.1; // 0.25;//0.45;
+float kappa = 1.1;
 
 float nominal_raft_speed = 50.0;
 
@@ -131,6 +132,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__simplification);
 
         gCmdLine.add(cmd__flow_modifier);
+        gCmdLine.add(cmd__backpressure_compensation);
         gCmdLine.add(cmd__preferred_bead_width);
 
         gCmdLine.parse(argc, argv);
@@ -160,6 +162,7 @@ bool readCommandLine(int argc, char **argv)
         simplify_min_length_3D = MM2INT(cmd__simplification.getValue());
         
         flow_modifier = cmd__flow_modifier.getValue();
+        kappa = cmd__backpressure_compensation.getValue();
         preferred_bead_width = MM2INT(cmd__preferred_bead_width.getValue());
         
         return false;
