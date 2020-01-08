@@ -559,12 +559,13 @@ void test()
         {
             print_time = print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
-        std::cerr << "Print time (Marlin estimate): " << print_time << '\n';
+        std::cerr << "Print time (Marlin estimate): " << print_time << " (" << double(print_time) << "s.)\n";
     }
 
     if (perform_analysis || visualize_analysis)
     {
         
+        /*
         std::ostringstream ss;
         ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ifstream file(ss.str().c_str());
@@ -573,6 +574,7 @@ void test()
             logAlways("Test already has results saved\n");
             std::exit(-1);
         }
+        */
         std::cout << "Computing statistics...\n";
         Statistics stats(test_type, output_prefix, polys, print_time);
         stats.analyse(result_polygons_per_index, result_polylines_per_index);
