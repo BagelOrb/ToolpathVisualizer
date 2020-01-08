@@ -35,6 +35,7 @@ public:
     double overfill_area = -1;
     double double_overfill_area = -1;
     double total_underfill_area = -1;
+    double outer_underfill_area = -1;
     double total_target_area = -1;
     double total_target_area_length = -1;
     int closed_toolpaths = -1;
@@ -63,6 +64,7 @@ private:
     Polygons area_covered;
     Polygons overlaps;
     Polygons underfills;
+    Polygons outer_underfills;
     Polygons overfills;
     Polygons double_overfills;
     Polygons paths;

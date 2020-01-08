@@ -74,6 +74,22 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
     underfills = underfills.offset(5);
 
     total_underfill_area = INT2MM2(underfills.area());
+    
+    outer_underfills = underfills;
+    outer_underfills = outer_underfills.difference(input.offset(-preferred_bead_width, ClipperLib::jtRound));
+    std::vector<PolygonsPart> parts = outer_underfills.splitIntoParts();
+    outer_underfills.clear();
+    Polygons inside_outline = input.offset(-50);
+    for (PolygonsPart& part : parts)
+    {
+        Polygons outline_intersection = part.difference(inside_outline);
+        if (!outline_intersection.empty())
+        {
+            outer_underfills.add(part);
+        }
+    }
+    outer_underfill_area = INT2MM2(outer_underfills.area());
+
 //     logAlways("Total underfill area: %f mm²\n", total_underfill_area);
 //     std::vector<PolygonsPart> underfill_areas = underfills.splitIntoParts();
 //     logAlways("Average area: %f mm² over %d parts\n", total_underfill_area / underfill_areas.size(), underfill_areas.size());
@@ -127,11 +143,11 @@ void Statistics::saveResultsCSV()
         std::ostringstream ss;
         ss << "visualization/" << output_prefix << "_" << test_type << "_results.csv";
         std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
-        csv << "print_time,overfill_area,double_overfill_area,total_underfill_area,"
+        csv << "print_time,overfill_area,double_overfill_area,total_underfill_area,outer_underfill_area,"
             << "total_target_area,total_target_area_length,vert_count,"
             << "test_type,output_prefix,"
             << "closed_toolpaths,open_toolpaths\n";
-        csv << print_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << ","
+        csv << print_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << "," << outer_underfill_area << ","
             << total_target_area << "," << total_target_area_length << "," << vert_count << ","
             << test_type << "," << output_prefix << ","
             << closed_toolpaths << "," << open_toolpaths << '\n';
@@ -227,8 +243,13 @@ void Statistics::visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, boo
         svg.nextLayer();
         svg.writeAreas(underfills, SVG::ColorObject(0,128,255), SVG::Color::NONE);
         svg.nextLayer();
+        svg.writeAreas(outer_underfills, SVG::ColorObject(0,255,128), SVG::Color::NONE);
+        svg.nextLayer();
         svg.writeAreas(overfills, SVG::Color::ORANGE, SVG::Color::NONE);
+        svg.nextLayer();
         svg.writeAreas(double_overfills, SVG::Color::ORANGE, SVG::Color::NONE);
+        svg.nextLayer();
+        svg.writePolygons(input);
     }
 
     if (output_widths)
