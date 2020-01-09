@@ -585,6 +585,8 @@ void test()
         if (perform_analysis)
         {
             stats.saveResultsCSV();
+            stats.saveWidthsCSV();
+            stats.saveAnglesCSV();
             if (output_segments_csv)
             {
                 stats.saveSegmentsCSV();

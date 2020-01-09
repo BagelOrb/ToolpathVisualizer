@@ -111,6 +111,94 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
     for (const auto& lines : polylines_per_index)
         open_toolpaths += lines.size();
 
+    total_toolpath_length = 0;
+    for (Segment& segment : all_segments)
+    {
+        total_toolpath_length += vSizeMM(segment.s.to.p - segment.s.from.p);
+    }
+    
+    auto bin_corner = [this](Point prev, Point here, Point next)
+    {
+        Point v1 = next - here;
+        Point v2 = prev - here;
+        float dott = INT2MM2(dot(v1, v2));
+        float v1_size = vSizeMM(v1);
+        float v2_size = vSizeMM(v2);
+        float p = std::min(1.0f, std::max(-1.0f, dott / v1_size / v2_size));
+        float angle = acos(p) * 180 / M_PI;
+        angle_bins[int(angle / angle_bin_size)]++;
+    };
+    
+    for (const auto& polys : polygons_per_index)
+    {
+        for (const auto& poly : polys)
+        {
+            Point prev = (--(--poly.junctions.end()))->p;
+            Point here = poly.junctions.back().p;
+            for (const ExtrusionJunction& j : poly.junctions)
+            {
+                Point next = j.p;
+                if (next == here) continue;
+                bin_corner(prev, here, next);
+                prev = here;
+                here = next;
+            }
+        }
+    }
+    
+    for (const auto& lines : polygons_per_index)
+    {
+        for (const auto& line : lines )
+        {
+            auto it = line.junctions.begin();
+            Point prev = it->p;
+            ++it;
+            Point here = it->p;
+            ++it;
+            for (; it != line.junctions.end(); ++it)
+            {
+                Point next = it->p;
+                if (next == here) continue;
+                bin_corner(prev, here, next);
+                prev = here;
+                here = next;
+            }
+        }
+    }
+    
+    
+    for (Segment& segment : all_segments)
+    {
+        coord_t a = std::min(segment.s.from.w, segment.s.to.w);
+        coord_t b = std::max(segment.s.from.w, segment.s.to.w);
+        float length = vSizeMM(segment.s.from.p - segment.s.to.p);
+        float segment_length = length / INT2MM(b - a) * INT2MM(width_bin_size); 
+        coord_t start_bin = a / width_bin_size;
+        coord_t end_bin = b / width_bin_size;
+        if (start_bin == end_bin)
+        {
+            if (start_bin >= 0 && start_bin < width_bins.size())
+                width_bins[start_bin] += length;
+        }
+        else
+        {
+            coord_t start_bin_w = (start_bin + 1) * width_bin_size;
+            if (start_bin >= 0 && start_bin < width_bins.size())
+                width_bins[start_bin] += segment_length * (start_bin_w - a) / width_bin_size;
+            for (coord_t bin = start_bin + 1; bin < end_bin; bin++)
+                if (bin >= 0 && bin < width_bins.size())
+                    width_bins[bin] += segment_length;
+            coord_t end_bin_w = end_bin * width_bin_size;
+            if (end_bin >= 0 && end_bin < width_bins.size())
+                width_bins[end_bin] += segment_length * (b - end_bin_w) / width_bin_size;
+        }
+    }
+    
+    float total_binned_path_length = 0;
+    for (float bin_length : width_bins)
+        total_binned_path_length += bin_length;
+    if (std::abs( total_binned_path_length - total_toolpath_length) / total_toolpath_length > 0.001)
+        logWarning("Total binned length (%d) doesn't coincide with total path length (%d)!\n", total_binned_path_length, total_toolpath_length);
 }
 
 void Statistics::saveSegmentsCSV()
@@ -146,13 +234,49 @@ void Statistics::saveResultsCSV()
         csv << "print_time,overfill_area,double_overfill_area,total_underfill_area,outer_underfill_area,"
             << "total_target_area,total_target_area_length,vert_count,"
             << "test_type,output_prefix,"
-            << "closed_toolpaths,open_toolpaths\n";
+            << "closed_toolpaths,open_toolpaths,total_toolpath_length\n";
         csv << print_time << "," << overfill_area << "," << double_overfill_area << "," << total_underfill_area << "," << outer_underfill_area << ","
             << total_target_area << "," << total_target_area_length << "," << vert_count << ","
             << test_type << "," << output_prefix << ","
-            << closed_toolpaths << "," << open_toolpaths << '\n';
+            << closed_toolpaths << "," << open_toolpaths << "," << total_toolpath_length << '\n';
         csv.close();
     }
+}
+void Statistics::saveAnglesCSV()
+{
+    coord_t vert_count = 0;
+    for (ConstPolygonRef poly : input)
+        for (const Point& p : poly)
+            vert_count++;
+    std::ostringstream ss;
+    ss << "visualization/" << output_prefix << "_" << test_type << "_angles.csv";
+
+    std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
+    for (int bin_idx = 0; bin_idx < angle_bins.size(); bin_idx++)
+        csv << (float(bin_idx) * angle_bin_size) << ",";
+    csv << '\n';
+    for (int bin_idx = 0; bin_idx < angle_bins.size(); bin_idx++)
+        csv << angle_bins[bin_idx] << ",";
+    csv << '\n';
+    csv.close();
+}
+void Statistics::saveWidthsCSV()
+{
+    coord_t vert_count = 0;
+    for (ConstPolygonRef poly : input)
+        for (const Point& p : poly)
+            vert_count++;
+    std::ostringstream ss;
+    ss << "visualization/" << output_prefix << "_" << test_type << "_widths.csv";
+
+    std::ofstream csv(ss.str(), std::ofstream::out | std::ofstream::trunc);
+    for (int bin_idx = 0; bin_idx < width_bins.size(); bin_idx++)
+        csv << (float(bin_idx) * width_bin_size) << ",";
+    csv << '\n';
+    for (int bin_idx = 0; bin_idx < width_bins.size(); bin_idx++)
+        csv << width_bins[bin_idx] << ",";
+    csv << '\n';
+    csv.close();
 }
 
 void Statistics::generateAllSegments(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index)
