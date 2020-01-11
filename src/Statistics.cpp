@@ -140,7 +140,7 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
             for (const ExtrusionJunction& j : poly.junctions)
             {
                 Point next = j.p;
-                if (next == here) continue;
+                if (next == here || shorterThen(next - here, 20)) continue;
                 bin_corner(prev, here, next);
                 prev = here;
                 here = next;
@@ -160,7 +160,7 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
             for (; it != line.junctions.end(); ++it)
             {
                 Point next = it->p;
-                if (next == here) continue;
+                if (next == here || shorterThen(next - here, 20)) continue;
                 bin_corner(prev, here, next);
                 prev = here;
                 here = next;
