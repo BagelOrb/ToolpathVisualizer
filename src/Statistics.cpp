@@ -128,7 +128,7 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
         float v2_size = vSizeMM(v2);
         float p = std::min(1.0f, std::max(-1.0f, dott / v1_size / v2_size));
         float angle = acos(p) * 180 / M_PI;
-        angle_bins[int(angle / angle_bin_size)]++;
+        angle_bins[int(angle / angle_bin_size + 0.5)]++;
     };
     
     for (const auto& polys : polygons_per_index)
