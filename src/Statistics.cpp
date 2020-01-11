@@ -13,82 +13,84 @@ namespace visualizer
     
 extern coord_t preferred_bead_width;
 
-void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index)
+void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, bool perform_overfill_underfill_analysis)
 {
     this->polygons_per_index = &polygons_per_index;
     this->polylines_per_index = &polylines_per_index;
 
     generateAllSegments(polygons_per_index, polylines_per_index);
-
     
-    for (coord_t segment_idx = 0; segment_idx < all_segments.size(); segment_idx++)
+    if (perform_overfill_underfill_analysis)
     {
-        Segment s = all_segments[segment_idx];
-        Polygons covered = s.s.toPolygons(false);
-        area_covered.add(covered);
-        Polygons extruded = s.toPolygons();
-        overlaps.add(extruded);
-    }
-    
-    area_covered = area_covered.execute(ClipperLib::pftNonZero);
-
-    overfills = overlaps;
-    for (PolygonRef poly : area_covered)
-    {
-        PolygonRef new_poly = overfills.newPoly();
-        for (coord_t point_idx = poly.size() - 1; point_idx >= 0; --point_idx)
+        for (coord_t segment_idx = 0; segment_idx < all_segments.size(); segment_idx++)
         {
-            new_poly.add(poly[point_idx]);
+            Segment s = all_segments[segment_idx];
+            Polygons covered = s.s.toPolygons(false);
+            area_covered.add(covered);
+            Polygons extruded = s.toPolygons();
+            overlaps.add(extruded);
         }
-    }
-    overfills.add(area_covered.difference(input));
+        
+        area_covered = area_covered.execute(ClipperLib::pftNonZero);
 
-    double_overfills = overfills;
-    for (PolygonRef poly : area_covered)
-    {
-        PolygonRef new_poly = double_overfills.newPoly();
-        for (coord_t point_idx = poly.size() - 1; point_idx >= 0; --point_idx)
+        overfills = overlaps;
+        for (PolygonRef poly : area_covered)
         {
-            new_poly.add(poly[point_idx]);
+            PolygonRef new_poly = overfills.newPoly();
+            for (coord_t point_idx = poly.size() - 1; point_idx >= 0; --point_idx)
+            {
+                new_poly.add(poly[point_idx]);
+            }
         }
-    }
-    overfills = overfills.execute(ClipperLib::pftPositive);
-    overfills = overfills.intersection(area_covered);
-    overfills = overfills.offset(-5);
-    overfills = overfills.offset(10);
-    overfills = overfills.offset(-5);
+        overfills.add(area_covered.difference(input));
 
-    double_overfills = double_overfills.execute(ClipperLib::pftPositive);
-    double_overfills = double_overfills.offset(-5);
-    double_overfills = double_overfills.offset(10);
-    double_overfills = double_overfills.offset(-5);
-
-    overfill_area = INT2MM2(overfills.area());
-    double_overfill_area = INT2MM2(double_overfills.area());
-    double total_overfill_area = overfill_area + double_overfill_area;
-//     logAlways("Total overfill area: %f mm²\n", total_overfill_area);
-
-    underfills = input.difference(area_covered);
-    underfills = underfills.offset(5);
-    underfills = underfills.offset(-10);
-    underfills = underfills.offset(5);
-
-    total_underfill_area = INT2MM2(underfills.area());
-    
-    outer_underfills = underfills;
-    outer_underfills = outer_underfills.difference(input.offset(-preferred_bead_width, ClipperLib::jtRound));
-    std::vector<PolygonsPart> parts = outer_underfills.splitIntoParts();
-    outer_underfills.clear();
-    Polygons inside_outline = input.offset(-50);
-    for (PolygonsPart& part : parts)
-    {
-        Polygons outline_intersection = part.difference(inside_outline);
-        if (!outline_intersection.empty())
+        double_overfills = overfills;
+        for (PolygonRef poly : area_covered)
         {
-            outer_underfills.add(part);
+            PolygonRef new_poly = double_overfills.newPoly();
+            for (coord_t point_idx = poly.size() - 1; point_idx >= 0; --point_idx)
+            {
+                new_poly.add(poly[point_idx]);
+            }
         }
+        overfills = overfills.execute(ClipperLib::pftPositive);
+        overfills = overfills.intersection(area_covered);
+        overfills = overfills.offset(-5);
+        overfills = overfills.offset(10);
+        overfills = overfills.offset(-5);
+
+        double_overfills = double_overfills.execute(ClipperLib::pftPositive);
+        double_overfills = double_overfills.offset(-5);
+        double_overfills = double_overfills.offset(10);
+        double_overfills = double_overfills.offset(-5);
+
+        overfill_area = INT2MM2(overfills.area());
+        double_overfill_area = INT2MM2(double_overfills.area());
+        double total_overfill_area = overfill_area + double_overfill_area;
+    //     logAlways("Total overfill area: %f mm²\n", total_overfill_area);
+
+        underfills = input.difference(area_covered);
+        underfills = underfills.offset(5);
+        underfills = underfills.offset(-10);
+        underfills = underfills.offset(5);
+
+        total_underfill_area = INT2MM2(underfills.area());
+        
+        outer_underfills = underfills;
+        outer_underfills = outer_underfills.difference(input.offset(-preferred_bead_width, ClipperLib::jtRound));
+        std::vector<PolygonsPart> parts = outer_underfills.splitIntoParts();
+        outer_underfills.clear();
+        Polygons inside_outline = input.offset(-50);
+        for (PolygonsPart& part : parts)
+        {
+            Polygons outline_intersection = part.difference(inside_outline);
+            if (!outline_intersection.empty())
+            {
+                outer_underfills.add(part);
+            }
+        }
+        outer_underfill_area = INT2MM2(outer_underfills.area());
     }
-    outer_underfill_area = INT2MM2(outer_underfills.area());
 
 //     logAlways("Total underfill area: %f mm²\n", total_underfill_area);
 //     std::vector<PolygonsPart> underfill_areas = underfills.splitIntoParts();

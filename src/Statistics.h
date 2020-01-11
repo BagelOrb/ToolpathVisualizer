@@ -29,7 +29,7 @@ public:
         total_target_area = INT2MM2(input.area());
         total_target_area_length = INT2MM(input.polygonLength());
     }
-    void analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index);
+    void analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_index, std::vector<std::list<ExtrusionLine>>& polylines_per_index, bool perform_overfill_underfill_analysis);
     void visualize(coord_t min_nozzle_size, coord_t max_nozzle_size, bool output_toolpaths = false, bool output_widths = true, bool include_legend = false, bool output_accuracy = true, bool exaggerate_widths = false, bool rounded_visualization = true);
     void saveResultsCSV();
     void saveWidthsCSV();
@@ -73,7 +73,7 @@ private:
     Polygons overfills;
     Polygons double_overfills;
     Polygons paths;
-    float angle_bin_size = 1;
+    float angle_bin_size = 1.0;
     std::vector<int> angle_bins;
     coord_t width_bin_size = 10;
     std::vector<float> width_bins;

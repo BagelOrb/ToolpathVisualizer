@@ -59,6 +59,7 @@ static TCLAP::SwitchArg cmd__do_widthLimitsTest("", "widthLimitsTest", "generate
 static TCLAP::SwitchArg cmd__convert_svg("", "convert", "convert input svg to txt", false);
 
 static TCLAP::SwitchArg cmd__analyse("a", "analyse", "Analyse output paths", false);
+static TCLAP::SwitchArg cmd__analyse_over_underfill("", "no_over_underfill", "don't compute the overfill and underfill statistics", false);
 static TCLAP::SwitchArg cmd__visualize("", "visualize", "Visualize widths and accuracy", false);
 static TCLAP::SwitchArg cmd__output_segments_csv("", "segments", "Convert the input toolpaths to a segments.csv file format (in printing order)", false);
 static TCLAP::ValueArg<double> cmd__scale_amount("", "scale", "Input polygon scaler", false /* required? */, 1.0, "floating number");
@@ -85,6 +86,7 @@ bool do_widthLimitsTest = false;
 bool convert_svg = false;
 
 bool perform_analysis = false;
+bool perform_overfill_underfill_analysis = true;
 bool visualize_analysis = false;
 bool output_segments_csv = false;
 
@@ -124,6 +126,7 @@ bool readCommandLine(int argc, char **argv)
         
         
         gCmdLine.add(cmd__analyse);
+        gCmdLine.add(cmd__analyse_over_underfill);
         gCmdLine.add(cmd__visualize);
         gCmdLine.add(cmd__output_segments_csv);
         gCmdLine.add(cmd__scale_amount);
@@ -151,6 +154,7 @@ bool readCommandLine(int argc, char **argv)
         convert_svg = cmd__convert_svg.getValue();
         
         perform_analysis = cmd__analyse.getValue();
+        perform_overfill_underfill_analysis = ! cmd__analyse_over_underfill.getValue();
         visualize_analysis = cmd__visualize.getValue();
         output_segments_csv = cmd__output_segments_csv.getValue();
         
@@ -577,7 +581,7 @@ void test()
         */
         std::cout << "Computing statistics...\n";
         Statistics stats(test_type, output_prefix, polys, print_time);
-        stats.analyse(result_polygons_per_index, result_polylines_per_index);
+        stats.analyse(result_polygons_per_index, result_polylines_per_index, perform_overfill_underfill_analysis);
         if (visualize_analysis)
         {
             stats.visualize(MM2INT(0.3), MM2INT(0.7));
