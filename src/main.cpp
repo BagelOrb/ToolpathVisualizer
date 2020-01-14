@@ -69,6 +69,7 @@ static TCLAP::ValueArg<double> cmd__simplification("", "simplification", "Simpli
 
 static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion flow scaler", false /* required? */, 1.0, "ratio");
 static TCLAP::ValueArg<double> cmd__backpressure_compensation("k", "kappa", "Amount of backpressure compensation", false /* required? */, 1.1, "");
+static TCLAP::SwitchArg cmd__no_flow_equalization("", "no_flow_equalization", "Don't adjust speeds according to the width", false);
 static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferred bead width", false /* required? */, 0.4, "mm");
 
 std::string input_outline_filename = "";
@@ -96,6 +97,7 @@ coord_t simplify_min_length_3D = 0;
 
 float flow_modifier = 0.9;
 
+bool flow_equalization = true;
 float nominal_print_speed = 30.0;
 float travel_speed = 120.0;
 coord_t layer_thickness = MM2INT(0.1);
@@ -135,6 +137,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__simplification);
 
         gCmdLine.add(cmd__flow_modifier);
+        gCmdLine.add(cmd__no_flow_equalization);
         gCmdLine.add(cmd__backpressure_compensation);
         gCmdLine.add(cmd__preferred_bead_width);
 
@@ -166,6 +169,7 @@ bool readCommandLine(int argc, char **argv)
         simplify_min_length_3D = MM2INT(cmd__simplification.getValue());
         
         flow_modifier = cmd__flow_modifier.getValue();
+        flow_equalization = ! cmd__no_flow_equalization.getValue();
         kappa = cmd__backpressure_compensation.getValue();
         preferred_bead_width = MM2INT(cmd__preferred_bead_width.getValue());
         
@@ -200,7 +204,7 @@ Duration squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_pol
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, flow_equalization);
 	
 	
 	Point grid_shape(4,6);
@@ -258,7 +262,7 @@ Duration raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polyli
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UMS5, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, flow_equalization);
 	
 	Polygons raft_outline = polys.offset(MM2INT(6.0), ClipperLib::jtRound).offset(MM2INT(-3.0), ClipperLib::jtRound);
     
@@ -295,7 +299,7 @@ Duration print(const std::vector<std::list<ExtrusionLine>> & result_polylines_pe
 
     std::ostringstream ss;
     ss << "visualization/" << output_prefix << ".gcode";
-	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, true);
+	GcodeWriter gcode(ss.str(), GcodeWriter::type_UM3, true, layer_thickness, nominal_raft_speed, travel_speed, flow_modifier, flow_equalization);
 	
     gcode.setTranslation(-AABB(polys).getMiddle());
 	gcode.switchExtruder(0);
