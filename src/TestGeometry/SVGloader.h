@@ -51,9 +51,33 @@ public:
         std::regex point_regex("([^ ]+)");
         std::smatch point_sm;
 
+        Point3Matrix transform;
+        std::regex transform_regex(" transform=\"matrix\\(([^\"]*)\\)\"");
+        std::smatch transform_sm;
+        
         std::string line;
         while (getline(file, line))
         {
+            if (std::regex_search(line, transform_sm, transform_regex))
+            {
+                std::string transform_str = transform_sm[1].str();
+               
+                float matrix[6];
+                if (transform_sm.size() <= 0) continue;
+                if (std::sscanf(transform_str.c_str(), "%f,%f,%f,%f,%f,%f", &matrix[0], &matrix[1], &matrix[2], &matrix[3], &matrix[4], &matrix[5]) == 6)
+                {
+                    transform.matrix[0] = MM2INT(matrix[0]);
+                    transform.matrix[1] = MM2INT(matrix[1]);
+                    transform.matrix[3] = MM2INT(matrix[2]);
+                    transform.matrix[4] = MM2INT(matrix[3]);
+                    transform.matrix[6] = MM2INT(matrix[4]);
+                    transform.matrix[7] = MM2INT(matrix[5]);
+                }
+                else
+                {
+                    std::cerr << "Couldn't parse '" << transform_str << "'\n";
+                }
+            }
             if (std::regex_search(line, points_sm, points_regex))
             {
                 if (points_sm.size() < 2)
@@ -91,6 +115,7 @@ public:
                     }
                     points_str = point_sm.suffix().str();
                 }
+                poly.applyMatrix(transform);
             }
         }
         return ret;
