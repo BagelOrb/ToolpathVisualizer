@@ -174,7 +174,6 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
         coord_t a = std::min(segment.s.from.w, segment.s.to.w);
         coord_t b = std::max(segment.s.from.w, segment.s.to.w);
         float length = vSizeMM(segment.s.from.p - segment.s.to.p);
-        float segment_length = length / INT2MM(b - a) * INT2MM(width_bin_size); 
         coord_t start_bin = a / width_bin_size;
         coord_t end_bin = b / width_bin_size;
         if (start_bin == end_bin)
@@ -184,6 +183,7 @@ void Statistics::analyse(std::vector<std::list<ExtrusionLine>>& polygons_per_ind
         }
         else
         {
+            float segment_length = length / INT2MM(b - a) * INT2MM(width_bin_size); 
             coord_t start_bin_w = (start_bin + 1) * width_bin_size;
             if (start_bin >= 0 && start_bin < width_bins.size())
                 width_bins[start_bin] += segment_length * (start_bin_w - a) / width_bin_size;
