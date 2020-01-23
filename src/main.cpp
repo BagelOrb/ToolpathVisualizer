@@ -71,6 +71,7 @@ static TCLAP::ValueArg<double> cmd__flow_modifier("", "flow", "Output extrusion 
 static TCLAP::ValueArg<double> cmd__backpressure_compensation("k", "kappa", "Amount of backpressure compensation", false /* required? */, 1.1, "");
 static TCLAP::SwitchArg cmd__no_flow_equalization("", "no_flow_equalization", "Don't adjust speeds according to the width", false);
 static TCLAP::ValueArg<double> cmd__preferred_bead_width("w", "width", "Preferred bead width", false /* required? */, 0.4, "mm");
+static TCLAP::ValueArg<double> cmd__layer_thickness("", "height", "Layer thickness", false /* required? */, 0.1, "mm");
 
 std::string input_outline_filename = "";
 std::string output_prefix = "";
@@ -140,6 +141,7 @@ bool readCommandLine(int argc, char **argv)
         gCmdLine.add(cmd__no_flow_equalization);
         gCmdLine.add(cmd__backpressure_compensation);
         gCmdLine.add(cmd__preferred_bead_width);
+        gCmdLine.add(cmd__layer_thickness);
 
         gCmdLine.parse(argc, argv);
 
@@ -172,6 +174,7 @@ bool readCommandLine(int argc, char **argv)
         flow_equalization = ! cmd__no_flow_equalization.getValue();
         kappa = cmd__backpressure_compensation.getValue();
         preferred_bead_width = MM2INT(cmd__preferred_bead_width.getValue());
+        layer_thickness = MM2INT(cmd__layer_thickness.getValue());
         
         return false;
     }
