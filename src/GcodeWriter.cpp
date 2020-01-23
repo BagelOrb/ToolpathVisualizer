@@ -580,7 +580,7 @@ void GcodeWriter::move(Point p)
             break;
     }
     cur_pos = p;
-    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), travel_speed);
+    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), travel_speed, PrintFeatureType::Move);
 }
 
 void GcodeWriter::print(ExtrusionJunction from, ExtrusionJunction to)
@@ -625,7 +625,6 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
 {
     coord_t w = (from.w + to.w) / 2;
     double print_speed = this->print_speed;
-    double slippage_compensation_factor = 1.0;
     if (equalize_flow)
     {
         double back_pressure = INT2MM(w - 400) / 0.4;
@@ -645,7 +644,7 @@ void GcodeWriter::printSingleExtrusionMove(ExtrusionJunction& from, ExtrusionJun
             break;
     }
     cur_pos = to.p;
-    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), print_speed);
+    marlin_estimates.plan(TimeEstimateCalculator::Position(INT2MM(cur_pos.X), INT2MM(cur_pos.Y), INT2MM(cur_z), last_E), print_speed, PrintFeatureType::Extrusion);
 }
 
 void GcodeWriter::extrude(float amount)

@@ -197,7 +197,7 @@ void convertSvg2SmoothPathPlanningFormat(const Polygons& polys, std::string base
 	}
 }
 
-Duration squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+std::vector<Duration> squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 	Point aabb_size = aabb.max - aabb.min;
@@ -256,7 +256,7 @@ Duration squareGridTest(const std::vector<std::list<ExtrusionLine>> & result_pol
     return gcode.marlin_estimates.calculate();
 }
 
-Duration raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix, bool brim = true)
+std::vector<Duration> raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix, bool brim = true)
 {
 	AABB aabb(polys);
 
@@ -293,7 +293,7 @@ Duration raftedPrint(const std::vector<std::list<ExtrusionLine>> & result_polyli
     return gcode.marlin_estimates.calculate();
 }
 
-Duration print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
+std::vector<Duration> print(const std::vector<std::list<ExtrusionLine>> & result_polylines_per_index, const std::vector<std::list<ExtrusionLine>> & result_polygons_per_index, const Polygons & polys, const std::string output_prefix)
 {
 	AABB aabb(polys);
 
@@ -552,22 +552,27 @@ void test()
     if (do_varWidthTest) varWidthTest(result_polylines_per_index, result_polygons_per_index, polys);
     if (do_widthLimitsTest) widthLimitsTest(result_polylines_per_index, result_polygons_per_index, polys);
     
-    Duration print_time = -1;
+    Duration print_time = 0;
     if (generate_gcode)
     {
+        std::vector<Duration> print_time_per_feature;
         if (generate_grid)
         {
-            print_time = squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time_per_feature = squareGridTest(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
         else if (generate_raft)
         {
-            print_time = raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time_per_feature = raftedPrint(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
         else
         {
-            print_time = print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
+            print_time_per_feature = print(result_polylines_per_index, result_polygons_per_index, polys, output_prefix);
         }
-        std::cerr << "Print time (Marlin estimate): " << print_time << " (" << double(print_time) << "s.)\n";
+        for (Duration dur : print_time_per_feature )
+            print_time += dur;
+        std::cerr << "#Print time: " << print_time << " (" << double( print_time ) << "s.)\n";
+        std::cerr << "#Extrusion time: " << print_time_per_feature[int(PrintFeatureType::Extrusion )] << " (" << double( print_time_per_feature[int(PrintFeatureType::Extrusion )]) << "s.)\n";
+        //std::cerr << "Travel time: " << print_time_per_feature[int(PrintFeatureType::Move )] << " (" << double( print_time_per_feature[int(PrintFeatureType::Move )]) << "s.)\n";
     }
 
     if (perform_analysis || visualize_analysis)

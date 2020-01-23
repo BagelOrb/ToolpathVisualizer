@@ -15,11 +15,19 @@
 namespace visualizer
 {
 
+enum class PrintFeatureType: unsigned char
+{
+    Extrusion = 0,
+    Move = 1,
+    NumPrintFeatureTypes = 2  // this number MUST be the last one because other modules will
+                              // use this symbol to get the total number of types, which can
+                              // be used to create an array or so
+};
+
 /*!
  *  The TimeEstimateCalculator class generates a estimate of printing time calculated with acceleration in mind.
  *  Some of this code has been adapted from the Marlin sources.
  */
-
 class TimeEstimateCalculator
 {
 public:
@@ -60,6 +68,8 @@ public:
         Acceleration acceleration;
         Position delta;
         Position absDelta;
+
+        PrintFeatureType feature;
     };
 
 private:
@@ -85,14 +95,14 @@ public:
      */
     void setFirmwareDefaults();
     void setPosition(Position newPos);
-    void plan(Position newPos, Velocity feedRate);
+    void plan(Position newPos, Velocity feedRate, PrintFeatureType type);
     void addTime(const Duration& time);
     void setAcceleration(const Acceleration& acc); //!< Set the default acceleration to \p acc
     void setMaxXyJerk(const Velocity& jerk); //!< Set the max xy jerk to \p jerk
 
     void reset();
     
-    Duration calculate();
+    std::vector<Duration> calculate();
 private:
     void reverse_pass();
     void forward_pass();
